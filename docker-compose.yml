@@ -1,0 +1,19 @@
+services:
+  archive:
+    build: .
+    image: ic-raid-archive:local
+    container_name: zoo-archive
+    restart: unless-stopped
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8765"
+      LEAD_CODE: "${LEAD_CODE:-}"
+      RAIDER_CODE: "${RAIDER_CODE:-}"
+      SEASON_START: "${SEASON_START:-}"
+    ports:
+      - "${PORT:-8765}:8765"
+    volumes:
+      - archive-data:/app/data
+
+volumes:
+  archive-data:

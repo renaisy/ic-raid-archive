@@ -14,7 +14,9 @@ node server.js
 
 默认邀请码：团长 `ic-lead`，队员 `ic-raid`。改 `data/store.json` 里的 `config`。
 
-局域网或 VPS：`HOST=0.0.0.0 PORT=8765 node server.js`
+局域网：`HOST=0.0.0.0 PORT=8765 node server.js`
+
+云服务器 Docker 部署、反代、备份见 [docs/deploy.md](docs/deploy.md)。健康检查：`GET /api/health`。
 
 ## 游戏里
 

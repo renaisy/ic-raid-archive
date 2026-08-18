@@ -95,6 +95,11 @@ function loadStore() {
   if (!store.config.leadCode) store.config.leadCode = "ic-lead";
   if (!store.config.raiderCode) store.config.raiderCode = "ic-raid";
   if (!store.config.seasonStart) store.config.seasonStart = DEFAULT_SEASON;
+  if (process.env.LEAD_CODE) store.config.leadCode = String(process.env.LEAD_CODE).trim();
+  if (process.env.RAIDER_CODE) store.config.raiderCode = String(process.env.RAIDER_CODE).trim();
+  if (process.env.SEASON_START && parseYmd(process.env.SEASON_START)) {
+    store.config.seasonStart = process.env.SEASON_START;
+  }
   store.config.guildName = store.config.guildName || "ZOO";
   store.config.realm = store.config.realm || "海加尔";
   store.config.region = store.config.region || "CN";
@@ -541,6 +546,11 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/api/health") {
+    send(res, 200, { ok: true, service: "ic-raid-archive", week: raidWeekStart() });
+    return;
+  }
+
   let store = loadStore();
   const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
   const sess = sessionOf(store, token);
@@ -832,5 +842,12 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`ZOO 团本档案  http://${HOST}:${PORT}`);
   console.log("国服海加尔 · ZOO · 周起始：上海时间周四 5 点");
-  console.log("默认邀请码  团长 ic-lead  队员 ic-raid  （改 data/store.json 里的 config）");
+  console.log("默认邀请码  团长 ic-lead  队员 ic-raid  （改 data/store.json 里的 config，或环境变量 LEAD_CODE / RAIDER_CODE）");
 });
+
+function shutdown() {
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 5000).unref();
+}
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
