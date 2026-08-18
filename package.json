@@ -1,0 +1,10 @@
+{
+  "name": "ic-raid-archive",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Weekly loot intent and award archive for IC Raid Lead / Companion.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
