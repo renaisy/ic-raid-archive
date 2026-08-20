@@ -56,6 +56,7 @@ const state = {
   rangeMode: "week",
   boardChar: "",
   journalBoss: "",
+  journalInstance: "",
   nightId: "",
 };
 
@@ -236,20 +237,44 @@ function itemChip(id, link, compact) {
 }
 
 function journalCatalog() {
-  return (state.data && state.data.journal) || { instance: {}, bosses: [] };
+  return (state.data && state.data.journal) || { instance: {}, bosses: [], instances: [] };
+}
+
+function journalInstances() {
+  const cat = journalCatalog();
+  if (Array.isArray(cat.instances) && cat.instances.length) return cat.instances;
+  const inst = cat.instance || {};
+  return [{
+    id: inst.id || "venomous-abyss",
+    nameZh: inst.nameZh || "剧毒深渊",
+    nameEn: inst.nameEn || "",
+    kind: "raid",
+    patch: inst.patch || "12.1",
+    lore: inst.lore || "",
+    entrance: inst.entrance || "",
+    bosses: cat.bosses || [],
+  }];
+}
+
+function currentJournalInstance() {
+  const list = journalInstances();
+  return list.find((row) => row.id === state.journalInstance) || list[0] || { bosses: [] };
+}
+
+function journalBosses() {
+  return currentJournalInstance().bosses || [];
 }
 
 function journalEntry(id) {
-  return (journalCatalog().bosses || []).find((b) => b.id === id) || null;
+  return journalBosses().find((b) => b.id === id)
+    || journalInstances().flatMap((row) => row.bosses || []).find((b) => b.id === id)
+    || null;
 }
 
 function currentJournalId() {
-  const lootIds = raidBosses().map((b) => b.id);
-  const journalIds = (journalCatalog().bosses || []).map((b) => b.id);
-  if (state.journalBoss && (lootIds.includes(state.journalBoss) || journalIds.includes(state.journalBoss))) {
-    return state.journalBoss;
-  }
-  return lootIds[0] || journalIds[0] || "";
+  const ids = journalBosses().map((b) => b.id);
+  if (state.journalBoss && ids.includes(state.journalBoss)) return state.journalBoss;
+  return ids[0] || "";
 }
 
 function tacticNoteFor(boss) {
@@ -563,13 +588,48 @@ function bindNightLinks(root) {
   });
 }
 
+function weekdayLabel(ymd) {
+  const p = ymdParts(ymd);
+  if (!p.y || !p.m || !p.d) return "";
+  const w = new Date(Date.UTC(p.y, p.m - 1, p.d)).getUTCDay();
+  return "星期" + "日一二三四五六"[w];
+}
+
+function dateWithWeekday(ymd) {
+  const w = weekdayLabel(ymd);
+  return w ? `${ymd} ${w}` : String(ymd || "");
+}
+
 function nightLine(n, withDate) {
   const parts = [];
-  if (withDate && n.date) parts.push(n.date);
+  if (withDate && n.date) parts.push(dateWithWeekday(n.date));
   if (n.time) parts.push(n.time);
   if (n.title) parts.push(n.title);
   if (n.instance) parts.push(n.instance);
   return parts.join(" · ") || "时间未定";
+}
+
+function nightFormDefaults() {
+  let stored = {};
+  try { stored = JSON.parse(localStorage.getItem("icra_night_form") || "{}") || {}; } catch (_) {}
+  const last = allNights().slice().sort((a, b) => String(b.date).localeCompare(a.date) || String(b.time).localeCompare(a.time))[0];
+  return {
+    title: stored.title || (last && last.title) || "新团本普通难度1-7",
+    time: stored.time || (last && last.time) || "21:00",
+    instance: stored.instance || (last && last.instance) || raidInstanceName(),
+    note: stored.note || (last && last.note) || "集合石 / 语音",
+  };
+}
+
+function rememberNightForm(night) {
+  try {
+    localStorage.setItem("icra_night_form", JSON.stringify({
+      title: night.title || "",
+      time: night.time || "",
+      instance: night.instance || "",
+      note: night.note || "",
+    }));
+  } catch (_) {}
 }
 
 function nightSummary(d) {
@@ -879,11 +939,11 @@ function nightSignupBlock(n, myName) {
   }
   const mine = rows.find((r) => ckey(r.char) === ckey(myName));
   const sc = n.signupCounts || { in: groups.in.length, out: groups.out.length, maybe: groups.maybe.length };
-  const people = (list) => list.length
-    ? `<ul class="signup-list">${list.map((r) =>
-      `<li>${esc(shortName(r.char))}${r.note ? `<span class="muted"> · ${esc(r.note)}</span>` : ""}</li>`
-    ).join("")}</ul>`
-    : `<p class="muted">还没有人</p>`;
+  const people = (list, kind) => list.length
+    ? `<div class="signup-people">${list.map((r) =>
+      `<span class="signup-person">${tag(shortName(r.char), kind)}${r.note ? `<span class="muted">${esc(r.note)}</span>` : ""}</span>`
+    ).join("")}</div>`
+    : `<p class="signup-empty">—</p>`;
   return `<div class="night-signup">
     <h3>${esc(nightLine(n))}</h3>
     <p class="muted">能来 ${sc.in} · 请假 ${sc.out} · 待定 ${sc.maybe}。你现在：${
@@ -897,9 +957,9 @@ function nightSignupBlock(n, myName) {
     <label>附言（可选）</label>
     <input data-rsvp-note="${esc(n.id)}" value="${esc(mine && mine.note || "")}" placeholder="比如迟到、只打前两个" />
     <div class="signup-cols">
-      <div><h4>能来</h4>${people(groups.in)}</div>
-      <div><h4>请假</h4>${people(groups.out)}</div>
-      <div><h4>待定</h4>${people(groups.maybe)}</div>
+      <div class="signup-col in"><h4>能来 · ${sc.in}</h4>${people(groups.in, "ok")}</div>
+      <div class="signup-col out"><h4>请假 · ${sc.out}</h4>${people(groups.out, "warn")}</div>
+      <div class="signup-col maybe"><h4>待定 · ${sc.maybe}</h4>${people(groups.maybe, "")}</div>
     </div>
   </div>`;
 }
@@ -938,6 +998,7 @@ function renderCalendar(page, d) {
   nights.forEach((n) => Object.values(n.signups || {}).forEach((r) => r.char && proxyNames.add(r.char)));
   const rosterOpts = [...proxyNames].map((n) =>
     `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  const form = nightFormDefaults();
 
   page.appendChild(el(`<div class="card">
     <div class="cal-nav">
@@ -964,13 +1025,13 @@ function renderCalendar(page, d) {
       </div>`).join("") : `<p class="muted">这天还没有开团。团长在下面加上时间和副本。</p>`}
       ${lead ? `<div class="night-form">
         <label>标题</label>
-        <input id="nightTitle" placeholder="M1-3" />
+        <input id="nightTitle" value="${esc(form.title)}" placeholder="例如 M1-3" />
         <label>集合时间</label>
-        <input id="nightTime" placeholder="21:00" />
+        <input id="nightTime" value="${esc(form.time)}" placeholder="例如 21:00" />
         <label>副本</label>
-        <input id="nightInst" placeholder="剧毒深渊" />
+        <input id="nightInst" value="${esc(form.instance)}" placeholder="例如 ${esc(raidInstanceName())}" />
         <label>备注</label>
-        <input id="nightNote" placeholder="集合石 / 语音" />
+        <input id="nightNote" value="${esc(form.note)}" placeholder="例如 集合石 / 语音" />
         <div class="row" style="margin-top:10px"><button id="addNight">把这天标成开团</button></div>
       </div>` : ""}
     </div>
@@ -1000,14 +1061,18 @@ function renderCalendar(page, d) {
   });
   const addNight = page.querySelector("#addNight");
   if (addNight) {
-    addNight.onclick = () => saveNight({
-      date,
-      week,
-      title: page.querySelector("#nightTitle").value,
-      time: page.querySelector("#nightTime").value,
-      instance: page.querySelector("#nightInst").value,
-      note: page.querySelector("#nightNote").value,
-    });
+    addNight.onclick = () => {
+      const night = {
+        date,
+        week,
+        title: page.querySelector("#nightTitle").value,
+        time: page.querySelector("#nightTime").value,
+        instance: page.querySelector("#nightInst").value,
+        note: page.querySelector("#nightNote").value,
+      };
+      rememberNightForm(night);
+      saveNight(night);
+    };
   }
   page.querySelectorAll("[data-del-night]").forEach((btn) => {
     btn.onclick = () => deleteNight(btn.getAttribute("data-del-night"), week);
@@ -1052,9 +1117,13 @@ function renderSignup(page, d) {
 
   page.appendChild(el(`<div class="card signup-hero">
     <p class="muted">报名页 · 只看这一场</p>
-    <h2>${esc(night.title || night.time || "开团")}</h2>
-    <p>${esc(nightLine(night, true))}</p>
-    ${night.note ? `<p class="muted">${esc(night.note)}</p>` : ""}
+    <h2>${esc(night.title || night.instance || "开团")}</h2>
+    <dl class="signup-meta">
+      <div><dt>日期</dt><dd>${esc(night.date ? dateWithWeekday(night.date) : "未标")}</dd></div>
+      <div><dt>开始时间</dt><dd>${esc(night.time || "时间未定")}</dd></div>
+      <div><dt>副本</dt><dd>${esc(night.instance || "未写")}</dd></div>
+      ${night.note ? `<div><dt>备注</dt><dd>${esc(night.note)}</dd></div>` : ""}
+    </dl>
     <p class="muted">能来 ${sc.in} · 请假 ${sc.out} · 待定 ${sc.maybe}</p>
     <div class="row" style="margin-top:12px">
       <button type="button" data-share="${esc(night.id)}">复制报名链接</button>
@@ -1436,25 +1505,39 @@ function renderRules(page, d) {
 
 function renderTactics(page, d) {
   const lead = state.role === "lead";
-  const inst = journalCatalog().instance || {};
-  const picks = raidBosses().length ? raidBosses() : (journalCatalog().bosses || []);
+  const insts = journalInstances();
+  const inst = currentJournalInstance();
+  const picks = journalBosses();
   const bossId = currentJournalId();
   const entry = journalEntry(bossId);
   const pick = picks.find((b) => b.id === bossId) || entry || {};
-  const title = pick.nameZh || (entry && entry.nameZh) || raidInstanceName();
+  const title = pick.nameZh || (entry && entry.nameZh) || inst.nameZh || raidInstanceName();
   const subtitle = pick.nameEn || (entry && entry.nameEn) || "";
   const note = tacticNoteFor({
     id: bossId,
     nameZh: title,
     nameEn: subtitle,
   });
+  const methodHref = (entry && entry.methodUrl) || "";
+  const facts = [
+    entry && entry.setup ? tag(entry.setup, "") : "",
+    entry && entry.lust ? tag("嗜血 " + entry.lust, "heal") : "",
+    ...((entry && entry.need) || []).map((n) => tag(n, "warn")),
+  ].filter(Boolean).join("");
 
   page.appendChild(el(`<div class="card">
     <h2>${esc(inst.nameZh || raidInstanceName())} · 12.1 手册</h2>
+    ${insts.length > 1 ? `<div class="boss-picks inst-picks">${insts.map((row) =>
+      `<button type="button" class="ghost${row.id === inst.id ? " on" : ""}" data-journal-inst="${esc(row.id)}">${esc(row.nameZh || row.nameEn)}${row.kind === "lair" ? " · 巢穴" : ""}</button>`
+    ).join("")}</div>` : ""}
     ${inst.lore ? `<p>${esc(inst.lore)}</p>` : ""}
     ${inst.entrance ? `<p class="muted">入口：${esc(inst.entrance)}</p>` : ""}
     <p class="muted">英雄为主，史诗另标。不是排轴。完整图文看
-      <a href="https://dreamforgewow.com/dungeon-journal" target="_blank" rel="noreferrer">梦工坊地下城手册</a>。
+      <a href="https://dreamforgewow.com/dungeon-journal" target="_blank" rel="noreferrer">梦工坊地下城手册</a>。${
+        methodHref
+          ? ` <a href="${esc(methodHref)}" target="_blank" rel="noreferrer">Method 英雄攻略</a>。`
+          : " Method 英雄页未上的王只写已知要点。"
+      }
     </p>
     <div class="boss-picks">${picks.map((b) =>
       `<button type="button" class="ghost${b.id === bossId ? " on" : ""}" data-journal="${esc(b.id)}">${esc(b.nameZh || b.nameEn)}</button>`
@@ -1463,9 +1546,14 @@ function renderTactics(page, d) {
 
   if (entry) {
     const roles = entry.roles || {};
+    const plan = entry.plan || [];
     page.appendChild(el(`<div class="card journal-card">
       <h2>${esc(entry.nameZh)} <span class="muted" style="font-weight:500">${esc(entry.nameEn || "")}</span></h2>
+      ${facts ? `<div class="journal-facts">${facts}</div>` : ""}
       <p>${esc(entry.overview || "")}</p>
+      ${plan.length ? `<h3>打法要点</h3>${plan.map((p) =>
+        `<div class="plan-block"><h4>${esc(p.title || "")}</h4><ul>${(p.items || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`
+      ).join("")}` : ""}
       ${(entry.wipe || []).length ? `<h3>常见灭团</h3><ul class="wipe">${entry.wipe.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}
       <div class="role-grid">
         <div><h3>坦克</h3><ul>${(roles.tank || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>
@@ -1495,6 +1583,14 @@ function renderTactics(page, d) {
       : (note.note ? `<p class="prose">${esc(note.note)}</p>` : `<p class="muted">团长还没写这只王的备注。</p>`)}
   </div>`));
 
+  page.querySelectorAll("[data-journal-inst]").forEach((btn) => {
+    btn.onclick = () => {
+      state.journalInstance = btn.getAttribute("data-journal-inst");
+      const ids = journalBosses().map((b) => b.id);
+      if (!ids.includes(state.journalBoss)) state.journalBoss = ids[0] || "";
+      render();
+    };
+  });
   page.querySelectorAll("[data-journal]").forEach((btn) => {
     btn.onclick = () => {
       state.journalBoss = btn.getAttribute("data-journal");

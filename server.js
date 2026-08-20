@@ -177,6 +177,7 @@ function emptyJournal() {
       entrance: "",
     },
     bosses: [],
+    instances: [],
   };
 }
 
@@ -185,6 +186,22 @@ function loadJournal() {
     const raw = JSON.parse(fs.readFileSync(JOURNAL_PATH, "utf8"));
     raw.instance = raw.instance || emptyJournal().instance;
     raw.bosses = Array.isArray(raw.bosses) ? raw.bosses : [];
+    raw.instances = Array.isArray(raw.instances) ? raw.instances : [];
+    if (!raw.instances.length && raw.bosses.length) {
+      raw.instances = [{ ...raw.instance, kind: "raid", bosses: raw.bosses }];
+    }
+    const abyss = raw.instances.find((row) => row.id === "venomous-abyss") || raw.instances[0];
+    if (abyss) {
+      raw.instance = {
+        id: abyss.id,
+        nameZh: abyss.nameZh,
+        nameEn: abyss.nameEn,
+        patch: abyss.patch || raw.instance.patch || "12.1",
+        lore: abyss.lore || raw.instance.lore || "",
+        entrance: abyss.entrance || raw.instance.entrance || "",
+      };
+      if (!raw.bosses.length) raw.bosses = abyss.bosses || [];
+    }
     return raw;
   } catch (_) {
     return emptyJournal();
