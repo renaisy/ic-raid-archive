@@ -13,6 +13,7 @@ const PUBLIC = path.join(ROOT, "public");
 const STORE_PATH = path.join(ROOT, "data", "store.json");
 const LOOT_PATH = path.join(ROOT, "data", "raid-loot.json");
 const JOURNAL_PATH = path.join(ROOT, "data", "raid-journal.json");
+const UPLOAD_DIR = path.join(ROOT, "data", "uploads");
 const QUALITY_BY_COLOR = {
   "9d9d9d": "poor",
   ffffff: "common",
@@ -28,6 +29,30 @@ const DEFAULT_SEASON = "2026-08-13";
 const WEEK_RESET_HOUR = 5; // 上海时间周四 5 点换周
 const MARKS = new Set(["player", "bank", "de"]);
 const RSVP = new Set(["in", "out", "maybe"]);
+const ROLES = new Set(["tank", "healer", "dps"]);
+const WEEKLY_INTENT_LIMIT = 2;
+const CLIP_URL_MAX = 500;
+const CLIP_CAPTION_MAX = 200;
+const CLIP_KEY_MAX = 80;
+const CLIP_TOTAL_MAX = 200;
+const CLIP_PER_ABILITY = 8;
+const CLIP_IMAGE_MAX = 4 * 1024 * 1024;
+const BODY_MAX = 256 * 1024;
+const CLIP_BODY_MAX = 8 * 1024 * 1024;
+const UPLOAD_NAME = /^[a-f0-9]{32}\.(jpg|png|webp|gif)$/;
+const IMAGE_TYPES = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+};
+const YT_ID = /^[\w-]{11}$/;
+const BV_ID = /^BV[1-9A-HJ-NP-Za-km-z]{10}$/;
+const SLOT_KEYS = new Set([
+  "HEAD", "NECK", "SHOULDER", "BACK", "CHEST", "WRIST", "HANDS", "WAIST",
+  "LEGS", "FEET", "FINGER1", "FINGER2", "TRINKET1", "TRINKET2", "MAINHAND", "OFFHAND",
+]);
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -109,7 +134,271 @@ function loadStore() {
   store.guild.roster = Array.isArray(store.guild.roster) ? store.guild.roster : [];
   store.guild.rules = typeof store.guild.rules === "string" ? store.guild.rules : "";
   store.guild.tactics = Array.isArray(store.guild.tactics) ? store.guild.tactics : [];
+  store.guild.clips = normalizeClips(store.guild.clips);
   return store;
+}
+
+function clipAbilityKey(raw) {
+  const key = String(raw || "").trim().slice(0, CLIP_KEY_MAX);
+  if (!key || /[\u0000-\u001f]/.test(key)) return "";
+  return key;
+}
+
+function journalBossIds() {
+  const ids = new Set();
+  const journal = loadJournal();
+  for (const inst of journal.instances || []) {
+    for (const boss of inst.bosses || []) {
+      if (boss && boss.id) ids.add(String(boss.id));
+    }
+  }
+  for (const boss of journal.bosses || []) {
+    if (boss && boss.id) ids.add(String(boss.id));
+  }
+  return ids;
+}
+
+function parseLocalUpload(raw) {
+  const m = String(raw || "").trim().match(/^\/media\/([a-f0-9]{32})\.(jpg|png|webp|gif)$/i);
+  if (!m) return null;
+  const file = `${m[1].toLowerCase()}.${m[2].toLowerCase()}`;
+  return { kind: "upload", url: `/media/${file}`, file };
+}
+
+function sniffImage(buf) {
+  if (!buf || buf.length < 12) return "";
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "jpg";
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return "png";
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) return "gif";
+  if (buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP") return "webp";
+  return "";
+}
+
+function decodeDataImage(raw) {
+  const text = String(raw || "").trim();
+  const m = text.match(/^data:image\/(jpeg|jpg|png|webp|gif);base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (!m) throw new Error("请上传 jpg/png/webp/gif 截图");
+  const buf = Buffer.from(m[2].replace(/\s/g, ""), "base64");
+  if (!buf.length) throw new Error("图片是空的");
+  if (buf.length > CLIP_IMAGE_MAX) throw new Error("截图请压到 4MB 以内");
+  const ext = sniffImage(buf);
+  if (!ext) throw new Error("文件不是可用的图片");
+  return { buf, ext };
+}
+
+function writeUpload(buf, ext) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  const name = `${crypto.randomBytes(16).toString("hex")}.${ext}`;
+  fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
+  return { kind: "upload", url: `/media/${name}`, file: name };
+}
+
+function removeUploadFile(row) {
+  const local = parseLocalUpload(row && row.url);
+  if (!local) return;
+  try {
+    fs.unlinkSync(path.join(UPLOAD_DIR, local.file));
+  } catch (_) {}
+}
+
+function serveUpload(pathname, res) {
+  const name = decodeURIComponent(pathname.replace(/^\/media\//, "")).toLowerCase();
+  if (name.includes("/") || name.includes("\\") || !UPLOAD_NAME.test(name)) {
+    res.writeHead(404);
+    res.end();
+    return;
+  }
+  const root = path.resolve(UPLOAD_DIR);
+  const file = path.resolve(UPLOAD_DIR, name);
+  if (file !== path.join(root, name)) {
+    res.writeHead(404);
+    res.end();
+    return;
+  }
+  fs.readFile(file, (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": IMAGE_TYPES[path.extname(file)] || "application/octet-stream",
+      "Cache-Control": "public, max-age=31536000, immutable",
+    });
+    res.end(data);
+  });
+}
+
+function parseMediaUrl(raw) {
+  const trimmed = String(raw || "").trim();
+  if (!trimmed) return { kind: "empty", url: "", embed: "" };
+  if (trimmed.length > CLIP_URL_MAX) throw new Error("链接太长");
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch (_) {
+    throw new Error("链接无效");
+  }
+  if (parsed.protocol !== "https:") throw new Error("只用 https 链接");
+  const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+
+  if (host === "youtu.be") {
+    const id = parsed.pathname.replace(/^\//, "").split("/")[0];
+    if (YT_ID.test(id)) {
+      return {
+        kind: "youtube",
+        url: `https://youtu.be/${id}`,
+        embed: `https://www.youtube-nocookie.com/embed/${id}`,
+      };
+    }
+  }
+  if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+    let id = parsed.searchParams.get("v") || "";
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    if (!id && (parts[0] === "embed" || parts[0] === "shorts" || parts[0] === "live") && parts[1]) {
+      id = parts[1];
+    }
+    if (YT_ID.test(id)) {
+      return {
+        kind: "youtube",
+        url: `https://www.youtube.com/watch?v=${id}`,
+        embed: `https://www.youtube-nocookie.com/embed/${id}`,
+      };
+    }
+  }
+
+  if (host === "b23.tv") {
+    throw new Error("请用完整 B 站链接（bilibili.com/video/BVxxxx），不要用短链");
+  }
+  if (host === "bilibili.com" || host === "m.bilibili.com" || host === "player.bilibili.com") {
+    let bvid = parsed.searchParams.get("bvid") || "";
+    const fromPath = parsed.pathname.match(/BV[1-9A-HJ-NP-Za-km-z]{10}/);
+    if (!bvid && fromPath) bvid = fromPath[0];
+    if (BV_ID.test(bvid)) {
+      let page = Number(parsed.searchParams.get("p") || parsed.searchParams.get("page") || 1);
+      if (!Number.isFinite(page) || page < 1 || page > 200) page = 1;
+      return {
+        kind: "bilibili",
+        url: `https://www.bilibili.com/video/${bvid}${page > 1 ? `?p=${page}` : ""}`,
+        embed: `https://player.bilibili.com/player.html?isOutside=true&bvid=${bvid}&page=${page}&high_quality=1&danmaku=0&autoplay=0`,
+      };
+    }
+  }
+
+  if (/\.(jpe?g|png|webp|gif)$/i.test(parsed.pathname)) {
+    return { kind: "image", url: trimmed, embed: "" };
+  }
+
+  throw new Error("只支持 B 站、YouTube，或 jpg/png/webp/gif 图片直链");
+}
+
+function clipItemId(raw) {
+  const id = String(raw || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16);
+  return id.length >= 6 ? id : "";
+}
+
+function newClipItemId() {
+  return crypto.randomBytes(8).toString("hex");
+}
+
+function normalizeClipItem(item) {
+  if (!item || typeof item !== "object") return null;
+  const caption = String(item.caption || "").trim().slice(0, CLIP_CAPTION_MAX);
+  const at = Number(item.at) || 0;
+  const id = clipItemId(item.id) || newClipItemId();
+  const local = parseLocalUpload(item.url);
+  if (local) return { id, url: local.url, kind: "upload", embed: "", caption, at };
+  try {
+    const media = parseMediaUrl(item.url);
+    if (media.kind === "empty") return null;
+    return {
+      id,
+      url: media.url,
+      kind: media.kind,
+      embed: media.embed || "",
+      caption,
+      at,
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+function clipItemsOf(row) {
+  if (!row) return [];
+  if (Array.isArray(row)) return row;
+  if (Array.isArray(row.items)) return row.items;
+  if (row.url || row.kind) return [row];
+  return [];
+}
+
+function normalizeClipRow(row) {
+  const items = [];
+  const seen = new Set();
+  for (const raw of clipItemsOf(row)) {
+    const item = normalizeClipItem(raw);
+    if (!item || seen.has(item.id)) continue;
+    seen.add(item.id);
+    items.push(item);
+    if (items.length >= CLIP_PER_ABILITY) break;
+  }
+  return items.length ? { items } : null;
+}
+
+function normalizeClips(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out = {};
+  for (const [bossId, map] of Object.entries(raw)) {
+    const id = String(bossId || "").trim().slice(0, 40);
+    if (!/^[a-z0-9][a-z0-9-]{1,39}$/i.test(id)) continue;
+    if (!map || typeof map !== "object" || Array.isArray(map)) continue;
+    const rows = {};
+    for (const [key, row] of Object.entries(map)) {
+      const abilityKey = clipAbilityKey(key);
+      if (!abilityKey) continue;
+      const normalized = normalizeClipRow(row);
+      if (normalized) rows[abilityKey] = normalized;
+    }
+    if (Object.keys(rows).length) out[id] = rows;
+  }
+  return out;
+}
+
+function clipCount(clips) {
+  let n = 0;
+  for (const map of Object.values(clips || {})) {
+    for (const row of Object.values(map || {})) n += clipItemsOf(row).length;
+  }
+  return n;
+}
+
+function publicClipItem(item) {
+  if (!item || !item.kind || !item.url) return null;
+  return {
+    id: item.id,
+    kind: item.kind,
+    url: item.url,
+    embed: item.embed || "",
+    caption: item.caption || "",
+  };
+}
+
+function publicClips(store) {
+  const clips = store.guild.clips || {};
+  const out = {};
+  for (const [bossId, map] of Object.entries(clips)) {
+    const rows = {};
+    for (const [key, row] of Object.entries(map || {})) {
+      const items = clipItemsOf(row).map(publicClipItem).filter(Boolean);
+      if (items.length) rows[key] = { items };
+    }
+    if (Object.keys(rows).length) out[bossId] = rows;
+  }
+  return out;
+}
+
+function removeClipItems(items) {
+  for (const item of items || []) removeUploadFile(item);
 }
 
 function bindChar(store, raw) {
@@ -138,6 +427,7 @@ function guildPublic(store) {
       name: String(t.name || "").slice(0, 64),
       note: String(t.note || "").slice(0, 2000),
     })),
+    clips: publicClips(store),
   };
 }
 
@@ -318,18 +608,41 @@ function parseArchive(text) {
 
 function applyIntent(bucket, data, at) {
   const key = charKey(data.char);
-  const slots = Array.isArray(data.slots) ? data.slots : [];
+  const seen = new Set();
+  const slots = [];
+  for (const s of Array.isArray(data.slots) ? data.slots : []) {
+    if (!s || !s.slotKey || !Number(s.itemId)) continue;
+    const slotKey = String(s.slotKey).slice(0, 16);
+    if (!SLOT_KEYS.has(slotKey) || seen.has(slotKey)) continue;
+    seen.add(slotKey);
+    slots.push({
+      slotKey,
+      itemId: Number(s.itemId),
+      priority: s.priority || "bis",
+    });
+  }
+  const filled = new Set(slots.map((s) => s.slotKey));
+  const prev = bucket.intents[key];
+  const weeklySrc = Array.isArray(data.weekly)
+    ? data.weekly
+    : ((prev && prev.weekly) || []);
+  const weeklySeen = new Set();
+  const weekly = [];
+  for (const raw of weeklySrc) {
+    const slotKey = String(raw || "").slice(0, 16);
+    if (!filled.has(slotKey) || weeklySeen.has(slotKey)) continue;
+    weeklySeen.add(slotKey);
+    weekly.push(slotKey);
+  }
+  if (weekly.length > WEEKLY_INTENT_LIMIT) {
+    throw new Error(`本周意向最多 ${WEEKLY_INTENT_LIMIT} 件`);
+  }
   bucket.intents[key] = {
     char: String(data.char).slice(0, 64),
     spec: data.spec || null,
     class: data.class || null,
-    slots: slots
-      .filter((s) => s && s.slotKey && Number(s.itemId))
-      .map((s) => ({
-        slotKey: String(s.slotKey).slice(0, 16),
-        itemId: Number(s.itemId),
-        priority: s.priority || "bis",
-      })),
+    slots,
+    weekly,
     at: Number(data.at) || at,
     week: data.week || null,
   };
@@ -502,20 +815,36 @@ function findNight(store, id) {
   return null;
 }
 
-function readBody(req) {
+function readBody(req, maxBytes = BODY_MAX) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (c) => chunks.push(c));
+    let size = 0;
+    let rejected = false;
+    const fail = (err) => {
+      if (rejected) return;
+      rejected = true;
+      reject(err);
+    };
+    req.on("data", (c) => {
+      size += c.length;
+      if (size > maxBytes) {
+        fail(new Error("内容太大"));
+        req.destroy();
+        return;
+      }
+      chunks.push(c);
+    });
     req.on("end", () => {
+      if (rejected) return;
       const raw = Buffer.concat(chunks).toString("utf8");
       if (!raw) return resolve({});
       try {
         resolve(JSON.parse(raw));
       } catch (err) {
-        reject(err);
+        fail(err);
       }
     });
-    req.on("error", reject);
+    req.on("error", fail);
   });
 }
 
@@ -558,6 +887,10 @@ function requireLead(sess, res) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host}`);
+  if (req.method === "GET" && url.pathname.startsWith("/media/")) {
+    serveUpload(url.pathname, res);
+    return;
+  }
   if (!url.pathname.startsWith("/api/")) {
     serveStatic(req, res);
     return;
@@ -663,6 +996,7 @@ const server = http.createServer(async (req, res) => {
         spec: body.spec,
         class: body.class,
         slots: body.slots || [],
+        weekly: body.weekly,
         at: Math.floor(Date.now() / 1000),
       });
       saveStore(store);
@@ -761,10 +1095,16 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       const char = sess.role === "lead" && requested ? requested : sess.name;
+      const role = ROLES.has(String(body.role || "")) ? String(body.role) : "";
+      const classId = String(body.classId || "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 20);
+      const specId = String(body.specId || "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 20);
       const row = {
         char,
         status,
         note: String(body.note || "").trim().slice(0, 120),
+        role,
+        classId,
+        specId,
       };
       const nightId = String(body.nightId || "").slice(0, 32);
       let week = body.week || raidWeekStart();
@@ -837,6 +1177,118 @@ const server = http.createServer(async (req, res) => {
         }));
       saveStore(store);
       send(res, 200, snapshot(store, body.week || raidWeekStart(), sess));
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/ability-clip") {
+      if (!requireLead(sess, res)) return;
+      const body = await readBody(req, CLIP_BODY_MAX);
+      const bossId = String(body.bossId || "").trim();
+      const abilityKey = clipAbilityKey(body.abilityKey);
+      if (!journalBossIds().has(bossId)) {
+        send(res, 400, { error: "找不到这只王" });
+        return;
+      }
+      if (!abilityKey) {
+        send(res, 400, { error: "请指定技能" });
+        return;
+      }
+      store.guild.clips = store.guild.clips || {};
+      const map = store.guild.clips[bossId] || {};
+      const existing = normalizeClipRow(map[abilityKey]) || { items: [] };
+      const items = existing.items.slice();
+      const caption = String(body.caption || "").trim().slice(0, CLIP_CAPTION_MAX);
+      const keepMap = () => {
+        if (Object.keys(map).length) store.guild.clips[bossId] = map;
+        else delete store.guild.clips[bossId];
+      };
+      const writeItems = (next) => {
+        if (next.length) map[abilityKey] = { items: next };
+        else delete map[abilityKey];
+        keepMap();
+        saveStore(store);
+        send(res, 200, snapshot(store, body.week || raidWeekStart(), sess));
+      };
+
+      if (body.clear) {
+        removeClipItems(items);
+        writeItems([]);
+        return;
+      }
+
+      const removeId = clipItemId(body.removeId);
+      if (removeId) {
+        const idx = items.findIndex((item) => item.id === removeId);
+        if (idx < 0) {
+          send(res, 400, { error: "找不到这张图" });
+          return;
+        }
+        removeUploadFile(items[idx]);
+        items.splice(idx, 1);
+        writeItems(items);
+        return;
+      }
+
+      const appendItem = (item) => {
+        if (items.length >= CLIP_PER_ABILITY) {
+          send(res, 400, { error: `这个技能最多 ${CLIP_PER_ABILITY} 张` });
+          return false;
+        }
+        if (clipCount(store.guild.clips) >= CLIP_TOTAL_MAX) {
+          send(res, 400, { error: "本团资料条数已满" });
+          return false;
+        }
+        items.push(item);
+        writeItems(items);
+        return true;
+      };
+
+      if (body.image) {
+        let uploaded;
+        try {
+          const decoded = decodeDataImage(body.image);
+          uploaded = writeUpload(decoded.buf, decoded.ext);
+        } catch (err) {
+          send(res, 400, { error: err.message || "上传失败" });
+          return;
+        }
+        const ok = appendItem({
+          id: newClipItemId(),
+          url: uploaded.url,
+          kind: "upload",
+          embed: "",
+          caption,
+          at: Date.now(),
+        });
+        if (!ok) removeUploadFile(uploaded);
+        return;
+      }
+
+      const link = String(body.url || "").trim();
+      if (link) {
+        let media;
+        try {
+          media = parseMediaUrl(link);
+        } catch (err) {
+          send(res, 400, { error: err.message || "链接无效" });
+          return;
+        }
+        if (media.kind === "empty") {
+          send(res, 400, { error: "请填写链接" });
+          return;
+        }
+        appendItem({
+          id: newClipItemId(),
+          url: media.url,
+          kind: media.kind,
+          embed: media.embed || "",
+          caption,
+          at: Date.now(),
+        });
+        return;
+      }
+
+      send(res, 400, { error: "请上传截图或填写视频链接" });
       return;
     }
 

@@ -24,9 +24,14 @@
           "nameZh": "缚魂者奈克扎利",
           "nameEn": "Nek'zali the Soulcoiler",
           "methodUrl": "https://www.method.gg/guides/the-venomous-abyss/nekzali-the-soulcoiler-heroic",
+          "icyUrl": "https://www.icy-veins.com/wow/nekzali-raid-guide",
+          "wipefestSlug": "nekzali-the-soulcoiler",
           "setup": "2坦 / 4疗 / 14输出",
           "lust": "二阶段",
-          "need": ["魔法驱散", "过渡强 AOE"],
+          "need": [
+            "魔法驱散",
+            "过渡强 AOE"
+          ],
           "overview": "中间是魂缠之井。小怪进井或人死在井里，王涨能量；能量 100 是软狂暴。控怪第一，打王第二。",
           "plan": [
             {
@@ -80,18 +85,492 @@
               "大技能留给二阶段"
             ]
           },
+          "positions": [
+            {
+              "title": "开场",
+              "caption": "门口开打。井在中，团在王身后，坦在王正面。毒潭丢边。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "well",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 9,
+                    "label": "井"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 56,
+                    "label": "王"
+                  },
+                  {
+                    "id": "melee",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 46,
+                    "label": "近战"
+                  },
+                  {
+                    "id": "heal",
+                    "type": "healer",
+                    "x": 68,
+                    "y": 50,
+                    "label": "治疗"
+                  },
+                  {
+                    "id": "ranged",
+                    "type": "ranged",
+                    "x": 78,
+                    "y": 42,
+                    "label": "远程"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 50,
+                    "y": 66,
+                    "label": "坦"
+                  },
+                  {
+                    "id": "drop",
+                    "type": "drop",
+                    "x": 80,
+                    "y": 20,
+                    "r": 5,
+                    "label": "毒潭"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "过渡烧尸",
+              "caption": "近战叠火葬盖尸。没去叠的人用火苗烧散尸。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3800,
+                "actors": [
+                  {
+                    "id": "well",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "label": "井"
+                  },
+                  {
+                    "id": "c1",
+                    "type": "drop",
+                    "x": 38,
+                    "y": 50,
+                    "r": 4,
+                    "label": "尸"
+                  },
+                  {
+                    "id": "c2",
+                    "type": "drop",
+                    "x": 44,
+                    "y": 54,
+                    "r": 4
+                  },
+                  {
+                    "id": "soak",
+                    "type": "soak",
+                    "x": 42,
+                    "y": 52,
+                    "r": 10,
+                    "pulse": true,
+                    "label": "火葬"
+                  },
+                  {
+                    "id": "melee",
+                    "type": "melee",
+                    "x": 42,
+                    "y": 52,
+                    "label": "近战"
+                  },
+                  {
+                    "id": "spark",
+                    "type": "proj",
+                    "label": "火苗",
+                    "path": [
+                      [
+                        74,
+                        18
+                      ],
+                      [
+                        62,
+                        30
+                      ],
+                      [
+                        50,
+                        40
+                      ],
+                      [
+                        44,
+                        50
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
           "abilities": [
-            { "nameZh": "魂缠之井", "nameEn": "Soulcoil Well", "tag": "重要", "text": "场中毒井。小怪进井触发仪式；站井里每秒重伤，死在井里给王加油。离井远一点。" },
-            { "nameZh": "魂缠仪式", "nameEn": "Soulcoil Rite", "tag": "治疗", "text": "井涌一次，王加 5 能量，全团暗影伤害并持续几秒。英雄再叠仪式灼烧，下一发仪式疼 15%。" },
-            { "nameZh": "仪式灼烧", "nameEn": "Ritual Burn", "tag": "灭团", "text": "英雄：每次进井叠一层，60 秒内后续仪式更疼。点燃前必须清零。" },
-            { "nameZh": "精华撕裂", "nameEn": "Essence Rend", "tag": "重要", "text": "拉几个人再甩开。身上留精华跳伤害，结束或驱散时在脚下出沉睡教徒（永驻毒潭）。" },
-            { "nameZh": "附身弹幕", "nameEn": "Possession Barrage", "tag": "坦克", "text": "朝主目标打幻影，落地爆炸。飞得越远越轻；碰到第一个人就炸。坦离 30 码，别人别挡。" },
-            { "nameZh": "掏魂打击", "nameEn": "Hollowing Strikes", "tag": "坦克", "text": "叠层降低治疗和吸收。减疗到 30–40% 换坦。" },
-            { "nameZh": "魂缠点燃", "nameEn": "Soulcoil Ignition", "tag": "治疗", "text": "连搅四次仪式，井里冒哀嚎幻影圈。躲开圈。带灼烧层进点燃会灭。" },
-            { "nameZh": "觉醒仪式", "nameEn": "Ritual of Awakening", "tag": "重要", "text": "半血护盾。杀掉两只贾瓦埃回响、砍断觉醒线才继续打王。" },
-            { "nameZh": "饥渴火葬", "nameEn": "Hungering Pyre", "tag": "重要", "text": "过渡分摊圈。近战去叠；没去的人被游走火苗追。火和圈都能烧尸。" },
-            { "nameZh": "解缠", "nameEn": "Uncoiling", "tag": "治疗", "text": "二阶段起全团持续暗影跳伤。软狂暴，必须斩掉。" },
-            { "nameZh": "解缠狂怒", "nameEn": "Uncoiled Rage", "tag": "灭团", "text": "能量满：伤害 500%，攻速移速大涨，免疫嘲讽。" }
+            {
+              "nameZh": "魂缠之井",
+              "nameEn": "Soulcoil Well",
+              "spellId": 1285623,
+              "tag": "重要",
+              "text": "场中毒井。小怪进井触发仪式；站井里每秒重伤，死在井里给王加油。离井远一点。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 4000,
+                "actors": [
+                  {
+                    "id": "well",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 10,
+                    "label": "井",
+                    "pulse": true
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 56,
+                    "label": "王"
+                  },
+                  {
+                    "id": "melee",
+                    "type": "melee",
+                    "x": 62,
+                    "y": 54,
+                    "label": "近战"
+                  },
+                  {
+                    "id": "stop",
+                    "type": "soak",
+                    "x": 34,
+                    "y": 24,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "先杀"
+                  },
+                  {
+                    "id": "add",
+                    "type": "add",
+                    "label": "阿玛尼",
+                    "path": [
+                      [
+                        16,
+                        14
+                      ],
+                      [
+                        26,
+                        20
+                      ],
+                      [
+                        34,
+                        24
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "魂缠仪式",
+              "nameEn": "Soulcoil Rite",
+              "spellId": 1288772,
+              "tag": "治疗",
+              "text": "井涌一次，王加 5 能量，全团暗影伤害并持续几秒。英雄再叠仪式灼烧，下一发仪式疼 15%。",
+              "normalText": "井涌一次，王加 5 能量，全团暗影伤害并持续几秒。"
+            },
+            {
+              "nameZh": "仪式灼烧",
+              "nameEn": "Ritual Burn",
+              "methodText": "Ritual Burn",
+              "icyText": "Ritual Burn",
+              "tag": "灭团",
+              "diffs": [
+                "heroic",
+                "mythic"
+              ],
+              "text": "每次进井叠一层，60 秒内后续仪式更疼。点燃前必须清零。"
+            },
+            {
+              "nameZh": "精华撕裂",
+              "nameEn": "Essence Rend",
+              "tag": "重要",
+              "text": "拉几个人再甩开。身上留精华跳伤害，结束或驱散时在脚下出沉睡教徒（永驻毒潭）。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "well",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "label": "井"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 54,
+                    "label": "王"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 58,
+                    "y": 56,
+                    "label": "团"
+                  },
+                  {
+                    "id": "debuff",
+                    "type": "ranged",
+                    "label": "撕裂",
+                    "path": [
+                      [
+                        58,
+                        50
+                      ],
+                      [
+                        82,
+                        20
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "puddle",
+                    "type": "drop",
+                    "x": 82,
+                    "y": 20,
+                    "r": 6,
+                    "label": "毒潭"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "附身弹幕",
+              "nameEn": "Possession Barrage",
+              "tag": "坦克",
+              "text": "朝主目标打幻影，落地爆炸。飞得越远越轻；碰到第一个人就炸。坦离 30 码，别人别挡。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "well",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 50,
+                    "label": "王"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 62,
+                    "y": 50,
+                    "label": "团"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "label": "坦 30码",
+                    "path": [
+                      [
+                        50,
+                        58
+                      ],
+                      [
+                        50,
+                        16
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "bolt",
+                    "type": "proj",
+                    "from": "boss",
+                    "to": "tank"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "掏魂打击",
+              "nameEn": "Hollowing Strikes",
+              "tag": "坦克",
+              "text": "叠层降低治疗和吸收。减疗到 30–40% 换坦。"
+            },
+            {
+              "nameZh": "魂缠点燃",
+              "nameEn": "Soulcoil Ignition",
+              "spellId": 1285681,
+              "tag": "治疗",
+              "text": "连搅四次仪式，井里冒哀嚎幻影圈。躲开圈。带灼烧层进点燃会灭。",
+              "normalText": "连搅四次仪式，井里冒哀嚎幻影圈。躲开圈。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 2800,
+                "actors": [
+                  {
+                    "id": "well",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "label": "井",
+                    "pulse": true
+                  },
+                  {
+                    "id": "c1",
+                    "type": "soak",
+                    "x": 38,
+                    "y": 24,
+                    "r": 7,
+                    "pulse": true
+                  },
+                  {
+                    "id": "c2",
+                    "type": "soak",
+                    "x": 64,
+                    "y": 28,
+                    "r": 7,
+                    "pulse": true
+                  },
+                  {
+                    "id": "c3",
+                    "type": "soak",
+                    "x": 36,
+                    "y": 48,
+                    "r": 7,
+                    "pulse": true
+                  },
+                  {
+                    "id": "raid",
+                    "type": "ranged",
+                    "label": "躲开",
+                    "path": [
+                      [
+                        50,
+                        58
+                      ],
+                      [
+                        74,
+                        54
+                      ],
+                      [
+                        78,
+                        40
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "觉醒仪式",
+              "nameEn": "Ritual of Awakening",
+              "methodText": "Echo of Jawae",
+              "icyText": "Soul Transfer",
+              "tag": "重要",
+              "text": "半血护盾。杀掉两只贾瓦埃回响、砍断觉醒线才继续打王。"
+            },
+            {
+              "nameZh": "饥渴火葬",
+              "nameEn": "Hungering Pyre",
+              "tag": "重要",
+              "text": "过渡分摊圈。近战去叠；没去的人被游走火苗追。火和圈都能烧尸。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "well",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "label": "井"
+                  },
+                  {
+                    "id": "c1",
+                    "type": "drop",
+                    "x": 38,
+                    "y": 50,
+                    "r": 4,
+                    "label": "尸"
+                  },
+                  {
+                    "id": "soak",
+                    "type": "soak",
+                    "x": 40,
+                    "y": 52,
+                    "r": 10,
+                    "pulse": true,
+                    "label": "分摊"
+                  },
+                  {
+                    "id": "melee",
+                    "type": "melee",
+                    "x": 40,
+                    "y": 52,
+                    "label": "近战"
+                  },
+                  {
+                    "id": "spark",
+                    "type": "proj",
+                    "label": "火苗",
+                    "path": [
+                      [
+                        72,
+                        16
+                      ],
+                      [
+                        58,
+                        32
+                      ],
+                      [
+                        46,
+                        48
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "解缠",
+              "nameEn": "Uncoiling",
+              "tag": "治疗",
+              "text": "二阶段起全团持续暗影跳伤。软狂暴，必须斩掉。"
+            },
+            {
+              "nameZh": "解缠狂怒",
+              "nameEn": "Uncoiled Rage",
+              "tag": "灭团",
+              "text": "能量满：伤害 500%，攻速移速大涨，免疫嘲讽。"
+            }
           ],
           "mythic": [
             "手册数字按史诗偏猛，英雄节奏一样：井要干净，过渡烧尸，二阶段斩杀。"
@@ -102,9 +581,13 @@
           "nameZh": "葬入哨卫",
           "nameEn": "Entombed Sentinels",
           "methodUrl": "https://www.method.gg/guides/the-venomous-abyss/entombed-sentinels-heroic",
+          "icyUrl": "https://www.icy-veins.com/wow/entombed-sentinels-raid-guide",
+          "wipefestSlug": "entombed-sentinels",
           "setup": "2坦 / 4疗 / 14输出",
           "lust": "开场",
-          "need": ["魔法驱散"],
+          "need": [
+            "魔法驱散"
+          ],
           "overview": "双构装。两规则：拉开 40 码，两边血齐。过渡后换边清层。",
           "plan": [
             {
@@ -148,17 +631,497 @@
               "过渡配对：绿球合计正好 4"
             ]
           },
+          "positions": [
+            {
+              "title": "开场左右拆",
+              "caption": "两队均分。两王 40 码以上。红边靠墙角，方便丢潭。",
+              "scene": {
+                "arena": "rect",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "green",
+                    "type": "boss",
+                    "x": 22,
+                    "y": 36,
+                    "label": "之息"
+                  },
+                  {
+                    "id": "red",
+                    "type": "boss",
+                    "x": 78,
+                    "y": 36,
+                    "label": "之血"
+                  },
+                  {
+                    "id": "gt",
+                    "type": "tank",
+                    "x": 18,
+                    "y": 48,
+                    "label": "绿坦"
+                  },
+                  {
+                    "id": "rt",
+                    "type": "tank",
+                    "x": 82,
+                    "y": 48,
+                    "label": "红坦"
+                  },
+                  {
+                    "id": "gm",
+                    "type": "melee",
+                    "x": 28,
+                    "y": 28,
+                    "label": "绿近"
+                  },
+                  {
+                    "id": "rm",
+                    "type": "melee",
+                    "x": 72,
+                    "y": 28,
+                    "label": "红近"
+                  },
+                  {
+                    "id": "gr",
+                    "type": "ranged",
+                    "x": 16,
+                    "y": 20,
+                    "label": "绿远"
+                  },
+                  {
+                    "id": "rr",
+                    "type": "healer",
+                    "x": 84,
+                    "y": 20,
+                    "label": "红远"
+                  },
+                  {
+                    "id": "puddle",
+                    "type": "drop",
+                    "x": 90,
+                    "y": 58,
+                    "r": 5,
+                    "label": "潭"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "过渡后换边",
+              "caption": "绿球配成 4 之后，两边人和坦换边，旧层掉。",
+              "scene": {
+                "arena": "rect",
+                "loopMs": 4000,
+                "actors": [
+                  {
+                    "id": "green",
+                    "type": "boss",
+                    "x": 22,
+                    "y": 36,
+                    "label": "之息"
+                  },
+                  {
+                    "id": "red",
+                    "type": "boss",
+                    "x": 78,
+                    "y": 36,
+                    "label": "之血"
+                  },
+                  {
+                    "id": "left",
+                    "type": "melee",
+                    "label": "换边",
+                    "path": [
+                      [
+                        24,
+                        24
+                      ],
+                      [
+                        76,
+                        24
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "right",
+                    "type": "ranged",
+                    "label": "换边",
+                    "path": [
+                      [
+                        76,
+                        48
+                      ],
+                      [
+                        24,
+                        48
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
           "abilities": [
-            { "nameZh": "乌拉泰克之威", "nameEn": "Ula'tek's Dominance", "tag": "重要", "text": "两王 40 码内受伤降低 99%。必须拉开。" },
-            { "nameZh": "酸印 / 血印", "nameEn": "Mark of Acid / Mark of Blood", "tag": "治疗", "text": "靠近哪边叠哪边的 40 秒跳伤。过渡换边让旧层掉。" },
-            { "nameZh": "赋能猛击", "nameEn": "Empowering Slam", "tag": "坦克", "text": "之息砸当前目标，同目标连挨越来越疼。换目标层数清。" },
-            { "nameZh": "血毒注射", "nameEn": "Bloodvenom Injection", "tag": "坦克", "text": "之血给当前目标挂毒。英雄：到期或驱散出大潭，换下来走到墙边。" },
-            { "nameZh": "毒液飞溅", "nameEn": "Toxic Droplets", "tag": "重要", "text": "之息洒毒滴，16 秒后炸全团。一人踩一两颗。" },
-            { "nameZh": "毒液凝固", "nameEn": "Venom Coagulation", "tag": "重要", "text": "之息吐一团，落地变成软泥，活着就跳全团。绿边第一优先。" },
-            { "nameZh": "活毒", "nameEn": "Living Venom", "tag": "重要", "text": "英雄：绿线飞出后会折返回王。来回都躲，别站在软泥和王之间。" },
-            { "nameZh": "不稳瘴气", "nameEn": "Unstable Miasma", "tag": "重要", "text": "之血点名，8 秒后爆炸，附近平摊。叠完走到墙边丢血毒潭。" },
-            { "nameZh": "酸蚀凝滞", "nameEn": "Vitriolic Stasis", "tag": "灭团", "text": "能量满，两王对冲 30 秒几乎打不动；血少的一方回血到血多的那边。" },
-            { "nameZh": "螺旋毒素", "nameEn": "Helical Toxins", "tag": "重要", "text": "每人头上 4 颗红/绿球。找一人配对，绿球合计正好 4。不是随便叠 4 层。" }
+            {
+              "nameZh": "乌拉泰克之威",
+              "nameEn": "Ula'tek's Dominance",
+              "spellId": 1290193,
+              "tag": "重要",
+              "text": "两王 40 码内受伤降低 99%。必须拉开。",
+              "scene": {
+                "arena": "rect",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "a",
+                    "type": "boss",
+                    "label": "之息",
+                    "path": [
+                      [
+                        42,
+                        36
+                      ],
+                      [
+                        20,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "type": "boss",
+                    "label": "之血",
+                    "path": [
+                      [
+                        58,
+                        36
+                      ],
+                      [
+                        80,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "bad",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 7,
+                    "label": "太近"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "酸印 / 血印",
+              "nameEn": "Mark of Acid / Mark of Blood",
+              "tag": "治疗",
+              "text": "靠近哪边叠哪边的 40 秒跳伤。过渡换边让旧层掉。"
+            },
+            {
+              "nameZh": "赋能猛击",
+              "nameEn": "Empowering Slam",
+              "tag": "坦克",
+              "text": "之息砸当前目标，同目标连挨越来越疼。换目标层数清。"
+            },
+            {
+              "nameZh": "血毒注射",
+              "nameEn": "Bloodvenom Injection",
+              "tag": "坦克",
+              "text": "之血给当前目标挂毒。英雄：到期或驱散出大潭，换下来走到墙边。",
+              "normalText": "之血给当前目标挂毒。换下来后走到墙边。",
+              "scene": {
+                "arena": "rect",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "red",
+                    "type": "boss",
+                    "x": 70,
+                    "y": 32,
+                    "label": "之血"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 62,
+                    "y": 28,
+                    "label": "团"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "label": "红坦",
+                    "path": [
+                      [
+                        70,
+                        44
+                      ],
+                      [
+                        88,
+                        58
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "wall",
+                    "type": "drop",
+                    "x": 88,
+                    "y": 58,
+                    "r": 6,
+                    "label": "大潭"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "毒液飞溅",
+              "nameEn": "Toxic Droplets",
+              "tag": "重要",
+              "text": "之息洒毒滴，16 秒后炸全团。一人踩一两颗。",
+              "scene": {
+                "arena": "rect",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "green",
+                    "type": "boss",
+                    "x": 24,
+                    "y": 36,
+                    "label": "之息"
+                  },
+                  {
+                    "id": "d1",
+                    "type": "mark",
+                    "x": 34,
+                    "y": 24
+                  },
+                  {
+                    "id": "d2",
+                    "type": "mark",
+                    "x": 40,
+                    "y": 40
+                  },
+                  {
+                    "id": "d3",
+                    "type": "mark",
+                    "x": 28,
+                    "y": 50
+                  },
+                  {
+                    "id": "p1",
+                    "type": "ranged",
+                    "x": 34,
+                    "y": 24,
+                    "label": "踩"
+                  },
+                  {
+                    "id": "p2",
+                    "type": "healer",
+                    "x": 40,
+                    "y": 40,
+                    "label": "踩"
+                  },
+                  {
+                    "id": "p3",
+                    "type": "melee",
+                    "x": 28,
+                    "y": 50,
+                    "label": "踩"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "毒液凝固",
+              "nameEn": "Venom Coagulation",
+              "tag": "重要",
+              "text": "之息吐一团，落地变成软泥，活着就跳全团。绿边第一优先。"
+            },
+            {
+              "nameZh": "活毒",
+              "nameEn": "Living Venom",
+              "tag": "重要",
+              "diffs": [
+                "heroic",
+                "mythic"
+              ],
+              "text": "绿线飞出后会折返回王。来回都躲，别站在软泥和王之间。",
+              "scene": {
+                "arena": "rect",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "green",
+                    "type": "boss",
+                    "x": 24,
+                    "y": 36,
+                    "label": "之息"
+                  },
+                  {
+                    "id": "ooze",
+                    "type": "add",
+                    "x": 46,
+                    "y": 36,
+                    "label": "软泥"
+                  },
+                  {
+                    "id": "line",
+                    "type": "proj",
+                    "label": "绿线",
+                    "path": [
+                      [
+                        24,
+                        36
+                      ],
+                      [
+                        70,
+                        36
+                      ],
+                      [
+                        24,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "safe",
+                    "type": "ranged",
+                    "x": 40,
+                    "y": 18,
+                    "label": "躲开"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "不稳瘴气",
+              "nameEn": "Unstable Miasma",
+              "tag": "重要",
+              "text": "之血点名，8 秒后爆炸，附近平摊。叠完走到墙边丢血毒潭。",
+              "scene": {
+                "arena": "rect",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "red",
+                    "type": "boss",
+                    "x": 70,
+                    "y": 30,
+                    "label": "之血"
+                  },
+                  {
+                    "id": "soak",
+                    "type": "soak",
+                    "x": 62,
+                    "y": 38,
+                    "r": 9,
+                    "pulse": true,
+                    "label": "叠"
+                  },
+                  {
+                    "id": "m1",
+                    "type": "melee",
+                    "x": 60,
+                    "y": 36
+                  },
+                  {
+                    "id": "m2",
+                    "type": "healer",
+                    "x": 64,
+                    "y": 40
+                  },
+                  {
+                    "id": "drop",
+                    "type": "ranged",
+                    "label": "丢墙",
+                    "path": [
+                      [
+                        62,
+                        38
+                      ],
+                      [
+                        88,
+                        58
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "wall",
+                    "type": "drop",
+                    "x": 88,
+                    "y": 58,
+                    "r": 5,
+                    "label": "潭"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "酸蚀凝滞",
+              "nameEn": "Vitriolic Stasis",
+              "tag": "灭团",
+              "text": "能量满，两王对冲 30 秒几乎打不动；血少的一方回血到血多的那边。"
+            },
+            {
+              "nameZh": "螺旋毒素",
+              "nameEn": "Helical Toxins",
+              "tag": "重要",
+              "text": "每人头上 4 颗红/绿球。找一人配对，绿球合计正好 4。不是随便叠 4 层。",
+              "scene": {
+                "arena": "rect",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "a",
+                    "type": "melee",
+                    "label": "绿3",
+                    "path": [
+                      [
+                        30,
+                        28
+                      ],
+                      [
+                        48,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "type": "ranged",
+                    "label": "绿1",
+                    "path": [
+                      [
+                        70,
+                        28
+                      ],
+                      [
+                        52,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "ok",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "pulse": true,
+                    "label": "4"
+                  },
+                  {
+                    "id": "bad",
+                    "type": "mark",
+                    "x": 82,
+                    "y": 56,
+                    "label": "错了去角"
+                  }
+                ]
+              }
+            }
           ],
           "mythic": [
             "史诗对血量和分摊更严。英雄同样：拉开、齐血、绿球配成 4。"
@@ -169,9 +1132,15 @@
           "nameZh": "迷失探险者",
           "nameEn": "The Lost Explorers",
           "methodUrl": "https://www.method.gg/guides/the-venomous-abyss/the-lost-explorers-heroic",
+          "icyUrl": "https://www.icy-veins.com/wow/lost-explorers-raid-guide",
+          "wipefestSlug": "the-lost-explorers",
           "setup": "2坦 / 4疗 / 14输出",
           "lust": "开场",
-          "need": ["打断", "清流血", "位移躲冲击波"],
+          "need": [
+            "打断",
+            "清流血",
+            "位移躲冲击波"
+          ],
           "overview": "三龟加莫扎希。30 码内三只同时在就 99% 减伤，同时只切两只。箱子出鱼，一共 3 条；第 4 次能量 100 硬狂暴。",
           "plan": [
             {
@@ -228,16 +1197,436 @@
               "齐血，大技能对准当前被控的龟"
             ]
           },
+          "positions": [
+            {
+              "title": "两切一拉",
+              "caption": "同时只切两只。第三只拉开 30 码。杰博爱乱走，坦跟住。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3800,
+                "actors": [
+                  {
+                    "id": "iku",
+                    "type": "boss",
+                    "x": 40,
+                    "y": 40,
+                    "label": "伊库"
+                  },
+                  {
+                    "id": "nama",
+                    "type": "boss",
+                    "x": 52,
+                    "y": 40,
+                    "label": "纳玛"
+                  },
+                  {
+                    "id": "gebbo",
+                    "type": "boss",
+                    "label": "杰博",
+                    "path": [
+                      [
+                        78,
+                        24
+                      ],
+                      [
+                        82,
+                        48
+                      ],
+                      [
+                        74,
+                        58
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "melee",
+                    "type": "melee",
+                    "x": 46,
+                    "y": 50,
+                    "label": "切这两"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 78,
+                    "y": 40,
+                    "label": "拉一只"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "重击三组分摊",
+              "caption": "纳玛三点名。三组接，躲开余震坑。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "nama",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "纳玛"
+                  },
+                  {
+                    "id": "s1",
+                    "type": "soak",
+                    "x": 32,
+                    "y": 50,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "1组"
+                  },
+                  {
+                    "id": "s2",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 56,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "2组"
+                  },
+                  {
+                    "id": "s3",
+                    "type": "soak",
+                    "x": 68,
+                    "y": 50,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "3组"
+                  },
+                  {
+                    "id": "pit",
+                    "type": "drop",
+                    "x": 50,
+                    "y": 22,
+                    "r": 5,
+                    "label": "坑"
+                  }
+                ]
+              }
+            }
+          ],
           "abilities": [
-            { "nameZh": "联合防御", "nameEn": "United Defense", "tag": "重要", "text": "三龟 30 码内同时在，受伤降低 99%。同时只切两只。" },
-            { "nameZh": "黑暗低语", "nameEn": "Dark Whispers", "tag": "重要", "text": "莫扎希控制一个目标，逼他打团队。只有被控的龟用强化技能。" },
-            { "nameZh": "恶臭鱼", "nameEn": "Disgusting Fish", "tag": "重要", "text": "杰博箱子里。喂给被控的龟，重置莫扎希能量，并强化下一只。" },
-            { "nameZh": "最终升腾", "nameEn": "Final Ascension", "tag": "灭团", "text": "能量 100 开读。第 4 次没有鱼就是硬狂暴。" },
-            { "nameZh": "霜火齐射", "nameEn": "Frostfire Volley", "tag": "重要", "text": "伊库下火和冰。踩对面圈清 Debuff。不清，下次反元素炸团。" },
-            { "nameZh": "重击落地", "nameEn": "Mighty Thud", "tag": "重要", "text": "纳玛点三个人连跳。落地伤附近平摊；没人接，全团挨。躲开余震坑。" },
-            { "nameZh": "爆炸惊喜", "nameEn": "Explosive Surprise", "tag": "重要", "text": "杰博扔炸弹，冲击波秒人。踩蘑菇或闪现跳过去。" },
-            { "nameZh": "闪现新星", "nameEn": "Blink Nova", "tag": "治疗", "text": "伊库短距闪现，全团奥术伤。离她越远越轻，散开 30 码。" },
-            { "nameZh": "遗物爆裂", "nameEn": "Relic Rupture", "tag": "灭团", "text": "箱子 25 秒没人踩，全团暗影伤。必须踩开。" }
+            {
+              "nameZh": "联合防御",
+              "nameEn": "United Defense",
+              "spellId": 1297646,
+              "tag": "重要",
+              "diffs": [
+                "heroic",
+                "mythic"
+              ],
+              "text": "三龟 30 码内同时在，受伤降低 99%。同时只切两只。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "a",
+                    "type": "boss",
+                    "x": 40,
+                    "y": 40,
+                    "label": "伊库"
+                  },
+                  {
+                    "id": "b",
+                    "type": "boss",
+                    "x": 52,
+                    "y": 40,
+                    "label": "纳玛"
+                  },
+                  {
+                    "id": "c",
+                    "type": "boss",
+                    "label": "杰博",
+                    "path": [
+                      [
+                        62,
+                        40
+                      ],
+                      [
+                        80,
+                        28
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "bad",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 6,
+                    "label": "别叠三"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "联合走位",
+              "nameEn": "Keep two stacked",
+              "methodText": "United Defense",
+              "icyText": "United Defense",
+              "tag": "重要",
+              "diffs": [
+                "normal"
+              ],
+              "text": "同时切两只更舒服。第三只拉开，给杰博乱走留空。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "a",
+                    "type": "boss",
+                    "x": 40,
+                    "y": 40,
+                    "label": "伊库"
+                  },
+                  {
+                    "id": "b",
+                    "type": "boss",
+                    "x": 52,
+                    "y": 40,
+                    "label": "纳玛"
+                  },
+                  {
+                    "id": "c",
+                    "type": "boss",
+                    "x": 78,
+                    "y": 30,
+                    "label": "杰博"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "黑暗低语",
+              "nameEn": "Dark Whispers",
+              "tag": "重要",
+              "text": "莫扎希控制一个目标，逼他打团队。只有被控的龟用强化技能。"
+            },
+            {
+              "nameZh": "恶臭鱼",
+              "nameEn": "Disgusting Fish",
+              "tag": "重要",
+              "text": "杰博箱子里。喂给被控的龟，重置莫扎希能量，并强化下一只。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3800,
+                "actors": [
+                  {
+                    "id": "crate",
+                    "type": "mark",
+                    "x": 74,
+                    "y": 52,
+                    "label": "箱"
+                  },
+                  {
+                    "id": "runner",
+                    "type": "ranged",
+                    "label": "踩箱",
+                    "path": [
+                      [
+                        60,
+                        50
+                      ],
+                      [
+                        74,
+                        52
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "fish",
+                    "type": "proj",
+                    "label": "鱼",
+                    "path": [
+                      [
+                        74,
+                        52
+                      ],
+                      [
+                        48,
+                        40
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 44,
+                    "y": 38,
+                    "label": "被控"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "最终升腾",
+              "nameEn": "Final Ascension",
+              "tag": "灭团",
+              "text": "能量 100 开读。第 4 次没有鱼就是硬狂暴。"
+            },
+            {
+              "nameZh": "霜火齐射",
+              "nameEn": "Frostfire Volley",
+              "tag": "重要",
+              "text": "伊库下火和冰。踩对面圈清 Debuff。不清，下次反元素炸团。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "iku",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "伊库"
+                  },
+                  {
+                    "id": "fire",
+                    "type": "mark",
+                    "x": 32,
+                    "y": 48,
+                    "label": "火"
+                  },
+                  {
+                    "id": "frost",
+                    "type": "soak",
+                    "x": 68,
+                    "y": 48,
+                    "r": 7,
+                    "label": "霜"
+                  },
+                  {
+                    "id": "swap",
+                    "type": "ranged",
+                    "label": "换圈",
+                    "path": [
+                      [
+                        32,
+                        48
+                      ],
+                      [
+                        68,
+                        48
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "重击落地",
+              "nameEn": "Mighty Thud",
+              "tag": "重要",
+              "text": "纳玛点三个人连跳。落地伤附近平摊；没人接，全团挨。躲开余震坑。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "nama",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 30,
+                    "label": "纳玛"
+                  },
+                  {
+                    "id": "s1",
+                    "type": "soak",
+                    "x": 34,
+                    "y": 50,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "1"
+                  },
+                  {
+                    "id": "s2",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 56,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "2"
+                  },
+                  {
+                    "id": "s3",
+                    "type": "soak",
+                    "x": 66,
+                    "y": 50,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "3"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "爆炸惊喜",
+              "nameEn": "Explosive Surprise",
+              "tag": "重要",
+              "text": "杰博扔炸弹，冲击波秒人。踩蘑菇或闪现跳过去。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "gebbo",
+                    "type": "boss",
+                    "x": 36,
+                    "y": 40,
+                    "label": "杰博"
+                  },
+                  {
+                    "id": "bomb",
+                    "type": "hazard",
+                    "x": 58,
+                    "y": 40,
+                    "r": 6,
+                    "label": "弹",
+                    "pulse": true
+                  },
+                  {
+                    "id": "shroom",
+                    "type": "drop",
+                    "x": 72,
+                    "y": 40,
+                    "r": 5,
+                    "label": "菇"
+                  },
+                  {
+                    "id": "jump",
+                    "type": "melee",
+                    "label": "跳过",
+                    "path": [
+                      [
+                        48,
+                        40
+                      ],
+                      [
+                        72,
+                        40
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "闪现新星",
+              "nameEn": "Blink Nova",
+              "tag": "治疗",
+              "text": "伊库短距闪现，全团奥术伤。离她越远越轻，散开 30 码。"
+            },
+            {
+              "nameZh": "遗物爆裂",
+              "nameEn": "Relic Rupture",
+              "tag": "灭团",
+              "text": "箱子 25 秒没人踩，全团暗影伤。必须踩开。"
+            }
           ],
           "mythic": [
             "被控的人技能更密，升腾窗口更短。鱼要准时，三龟仍要齐血。"
@@ -248,9 +1637,14 @@
           "nameZh": "恶毒的瓦什尼克",
           "nameEn": "Vashnik the Malignant",
           "methodUrl": "https://www.method.gg/guides/the-venomous-abyss/vashnik-the-malignant-heroic",
+          "icyUrl": "https://www.icy-veins.com/wow/vashnik-raid-guide",
+          "wipefestSlug": "vashnik-the-malignant",
           "setup": "2坦 / 4疗 / 14输出",
           "lust": "开场",
-          "need": ["暗/火活毒可控", "爆炸感染错开驱散"],
+          "need": [
+            "暗/火活毒可控",
+            "爆炸感染错开驱散"
+          ],
           "overview": "能量 100 喝最近两口泉。坦走位决定喝哪两口。活毒进场中裂隙就恶毒爆发。",
           "plan": [
             {
@@ -301,16 +1695,531 @@
               "瘟疫泡沫散开，躲开十字波"
             ]
           },
+          "positions": [
+            {
+              "title": "三泉开场",
+              "caption": "场中裂隙。坦在将喝的两口泉中间报出来。团在王身后，别挡活毒截击线。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "rift",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 7,
+                    "label": "裂隙",
+                    "pulse": true
+                  },
+                  {
+                    "id": "blood",
+                    "type": "mark",
+                    "x": 26,
+                    "y": 28,
+                    "label": "血"
+                  },
+                  {
+                    "id": "shadow",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 16,
+                    "label": "暗"
+                  },
+                  {
+                    "id": "fire",
+                    "type": "mark",
+                    "x": 74,
+                    "y": 28,
+                    "label": "火"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 38,
+                    "y": 22,
+                    "label": "王"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 38,
+                    "y": 30,
+                    "label": "两泉中"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 52,
+                    "label": "团"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "截活毒",
+              "caption": "活毒出生就拦，别让它走进裂隙。火的错开斩；血的死了收小块。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "rift",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 7,
+                    "label": "裂隙",
+                    "pulse": true
+                  },
+                  {
+                    "id": "add",
+                    "type": "add",
+                    "label": "活毒",
+                    "path": [
+                      [
+                        26,
+                        24
+                      ],
+                      [
+                        36,
+                        28
+                      ],
+                      [
+                        46,
+                        34
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "stop",
+                    "type": "soak",
+                    "x": 40,
+                    "y": 30,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "先杀"
+                  },
+                  {
+                    "id": "melee",
+                    "type": "melee",
+                    "x": 38,
+                    "y": 34,
+                    "label": "截"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 62,
+                    "y": 48,
+                    "label": "王"
+                  }
+                ]
+              }
+            }
+          ],
           "abilities": [
-            { "nameZh": "畅饮", "nameEn": "Imbibe", "tag": "灭团", "text": "能量满，喝最近两口泉：上毒雾，并出活毒朝裂隙走。" },
-            { "nameZh": "毒雾", "nameEn": "Toxic Vapor", "tag": "治疗", "text": "全团自然跳伤。每喝一口叠一层，越打越疼。软狂暴。" },
-            { "nameZh": "恶毒爆发", "nameEn": "Malignant Burst", "tag": "重要", "text": "活毒进裂隙：立刻一下再跳 30 秒，叠层。别让它到。" },
-            { "nameZh": "鲜血灌注", "nameEn": "Blood Infusion", "tag": "重要", "text": "喝泉后带上该泉元素（血/暗/火），强化下一轮畅饮、喷发和活毒血量。" },
-            { "nameZh": "分裂凝血", "nameEn": "Splitting Clot", "tag": "重要", "text": "血活毒免疫控。杀掉裂成两条小的，收干净。" },
-            { "nameZh": "适应感染", "nameEn": "Adaptive Infection", "tag": "治疗", "text": "按当前泉出三种：血=圈里吸血；暗=散开；火=驱散炸全团。" },
-            { "nameZh": "滴毒尖牙", "nameEn": "Dripping Fangs", "tag": "坦克", "text": "物理易伤 100%，32 秒。每下换坦。" },
-            { "nameZh": "恶毒触媒", "nameEn": "Malignant Catalyst", "tag": "重要", "text": "胆汁落点附近要有人。没人接，全团挨更大一下。" },
-            { "nameZh": "瘟疫泡沫", "nameEn": "Plague Froth", "tag": "重要", "text": "点名散开。结束喷十字波，躲开轴线。" }
+            {
+              "nameZh": "畅饮",
+              "nameEn": "Imbibe",
+              "tag": "灭团",
+              "text": "能量满，喝最近两口泉：上毒雾，并出活毒朝裂隙走。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3800,
+                "actors": [
+                  {
+                    "id": "a",
+                    "type": "mark",
+                    "x": 28,
+                    "y": 24,
+                    "label": "泉"
+                  },
+                  {
+                    "id": "b",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 14,
+                    "label": "泉"
+                  },
+                  {
+                    "id": "rift",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 40,
+                    "r": 7,
+                    "label": "裂隙"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 38,
+                    "y": 20,
+                    "label": "喝"
+                  },
+                  {
+                    "id": "add",
+                    "type": "add",
+                    "label": "活毒",
+                    "path": [
+                      [
+                        36,
+                        22
+                      ],
+                      [
+                        42,
+                        30
+                      ],
+                      [
+                        48,
+                        38
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "毒雾",
+              "nameEn": "Toxic Vapor",
+              "tag": "治疗",
+              "text": "全团自然跳伤。每喝一口叠一层，越打越疼。软狂暴。"
+            },
+            {
+              "nameZh": "恶毒爆发",
+              "nameEn": "Malignant Burst",
+              "tag": "重要",
+              "text": "活毒进裂隙：立刻一下再跳 30 秒，叠层。别让它到。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "rift",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 9,
+                    "label": "裂隙",
+                    "pulse": true
+                  },
+                  {
+                    "id": "add",
+                    "type": "add",
+                    "label": "活毒",
+                    "path": [
+                      [
+                        24,
+                        20
+                      ],
+                      [
+                        36,
+                        28
+                      ],
+                      [
+                        50,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "bad",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 36,
+                    "label": "别进"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "鲜血灌注",
+              "nameEn": "Blood Infusion",
+              "tag": "重要",
+              "text": "喝泉后带上该泉元素（血/暗/火），强化下一轮畅饮、喷发和活毒血量。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 4200,
+                "actors": [
+                  {
+                    "id": "blood",
+                    "type": "mark",
+                    "x": 26,
+                    "y": 30,
+                    "label": "血"
+                  },
+                  {
+                    "id": "shadow",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 16,
+                    "label": "暗"
+                  },
+                  {
+                    "id": "fire",
+                    "type": "mark",
+                    "x": 74,
+                    "y": 30,
+                    "label": "火"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "label": "换两口",
+                    "path": [
+                      [
+                        38,
+                        24
+                      ],
+                      [
+                        62,
+                        24
+                      ],
+                      [
+                        62,
+                        36
+                      ],
+                      [
+                        38,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 48,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "分裂凝血",
+              "nameEn": "Splitting Clot",
+              "tag": "重要",
+              "text": "血活毒免疫控。杀掉裂成两条小的，收干净。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "big",
+                    "type": "add",
+                    "x": 42,
+                    "y": 36,
+                    "label": "血毒"
+                  },
+                  {
+                    "id": "s1",
+                    "type": "add",
+                    "label": "小",
+                    "path": [
+                      [
+                        42,
+                        36
+                      ],
+                      [
+                        28,
+                        28
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "s2",
+                    "type": "add",
+                    "label": "小",
+                    "path": [
+                      [
+                        42,
+                        36
+                      ],
+                      [
+                        56,
+                        48
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "melee",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 36,
+                    "label": "收干净"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "适应感染",
+              "nameEn": "Adaptive Infection",
+              "tag": "治疗",
+              "text": "按当前泉出三种：血=圈里吸血；暗=散开；火=驱散炸全团。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "soak",
+                    "type": "soak",
+                    "x": 28,
+                    "y": 36,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "血圈"
+                  },
+                  {
+                    "id": "spread",
+                    "type": "ranged",
+                    "x": 50,
+                    "y": 20,
+                    "label": "暗散"
+                  },
+                  {
+                    "id": "fire",
+                    "type": "healer",
+                    "x": 72,
+                    "y": 36,
+                    "label": "火错开驱"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 50,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "滴毒尖牙",
+              "nameEn": "Dripping Fangs",
+              "tag": "坦克",
+              "text": "物理易伤 100%，32 秒。每下换坦。"
+            },
+            {
+              "nameZh": "恶毒触媒",
+              "nameEn": "Malignant Catalyst",
+              "tag": "重要",
+              "text": "胆汁落点附近要有人。没人接，全团挨更大一下。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "c1",
+                    "type": "soak",
+                    "x": 32,
+                    "y": 28,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "踩"
+                  },
+                  {
+                    "id": "c2",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 50,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "踩"
+                  },
+                  {
+                    "id": "c3",
+                    "type": "soak",
+                    "x": 70,
+                    "y": 30,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "踩"
+                  },
+                  {
+                    "id": "p1",
+                    "type": "ranged",
+                    "x": 32,
+                    "y": 28
+                  },
+                  {
+                    "id": "p2",
+                    "type": "healer",
+                    "x": 50,
+                    "y": 50
+                  },
+                  {
+                    "id": "p3",
+                    "type": "melee",
+                    "x": 70,
+                    "y": 30
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "瘟疫泡沫",
+              "nameEn": "Plague Froth",
+              "tag": "重要",
+              "text": "点名散开。结束喷十字波，躲开轴线。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "王"
+                  },
+                  {
+                    "id": "a",
+                    "type": "ranged",
+                    "x": 28,
+                    "y": 22,
+                    "label": "散"
+                  },
+                  {
+                    "id": "b",
+                    "type": "healer",
+                    "x": 74,
+                    "y": 50,
+                    "label": "散"
+                  },
+                  {
+                    "id": "h",
+                    "type": "proj",
+                    "label": "横",
+                    "path": [
+                      [
+                        18,
+                        36
+                      ],
+                      [
+                        82,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "v",
+                    "type": "proj",
+                    "label": "竖",
+                    "path": [
+                      [
+                        50,
+                        10
+                      ],
+                      [
+                        50,
+                        62
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
           ],
           "mythic": [
             "泉元素组合更狠，活毒更肉。优先截活毒，泉序别乱。"
@@ -321,10 +2230,15 @@
           "nameZh": "斯佐拉克",
           "nameEn": "Sszorak",
           "methodUrl": "https://www.method.gg/guides/the-venomous-abyss/sszorak-heroic",
+          "icyUrl": "https://www.icy-veins.com/wow/sszorak-raid-guide",
+          "wipefestSlug": "sszorak",
           "setup": "2坦 / 4疗 / 14输出",
           "lust": "开场",
-          "need": ["两组≥5 人分摊", "击退免疫先说好"],
-          "overview": "固定循环：顶级猎手 → 毒涌 → 狂暴侧风，两轮后能量 100 过渡。钻地是爆发窗，不是躲风。" ,
+          "need": [
+            "两组≥5 人分摊",
+            "击退免疫先说好"
+          ],
+          "overview": "固定循环：顶级猎手 → 毒涌 → 狂暴侧风，两轮后能量 100 过渡。钻地是爆发窗，不是躲风。",
           "plan": [
             {
               "title": "开场",
@@ -380,15 +2294,497 @@
               "过渡叠中间，钻地全开爆发"
             ]
           },
+          "positions": [
+            {
+              "title": "开场两组",
+              "caption": "两组各至少 5 人。风口对面放标记，毒涌囊肿丢在将吹风的对面。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 48,
+                    "label": "王"
+                  },
+                  {
+                    "id": "g1",
+                    "type": "soak",
+                    "x": 30,
+                    "y": 40,
+                    "r": 8,
+                    "label": "1组"
+                  },
+                  {
+                    "id": "g2",
+                    "type": "soak",
+                    "x": 70,
+                    "y": 40,
+                    "r": 8,
+                    "label": "2组"
+                  },
+                  {
+                    "id": "vent",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 14,
+                    "label": "风口"
+                  },
+                  {
+                    "id": "cyst",
+                    "type": "drop",
+                    "x": 50,
+                    "y": 58,
+                    "r": 5,
+                    "label": "囊肿对面"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "过渡叠中",
+              "caption": "场中重叠。风把自己推进预放的囊肿，囊肿弹回王。钻地 25 秒打满。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3800,
+                "actors": [
+                  {
+                    "id": "vent",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 12,
+                    "label": "风"
+                  },
+                  {
+                    "id": "wind",
+                    "type": "proj",
+                    "label": "吹",
+                    "path": [
+                      [
+                        50,
+                        14
+                      ],
+                      [
+                        50,
+                        36
+                      ],
+                      [
+                        50,
+                        52
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 36,
+                    "label": "叠中"
+                  },
+                  {
+                    "id": "cyst",
+                    "type": "drop",
+                    "x": 50,
+                    "y": 56,
+                    "r": 6,
+                    "label": "囊肿",
+                    "pulse": true
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "钻地"
+                  }
+                ]
+              }
+            }
+          ],
           "abilities": [
-            { "nameZh": "顶级猎手", "nameEn": "Apex Predator", "tag": "坦克", "text": "5 连随机。撕裂是坦锥，换坦；残害是团锥，两组≥5 人轮流；飓风躲开。" },
-            { "nameZh": "残害", "nameEn": "Mutilate", "tag": "重要", "text": "不足 5 人秒人。吃过的人下次残害受伤提高 500%，必须换组。" },
-            { "nameZh": "腐蚀毒液", "nameEn": "Corroding Venom", "tag": "坦克", "text": "每下普攻提高受到的物理伤害。叠层换坦。" },
-            { "nameZh": "毒涌", "nameEn": "Venomous Surge", "tag": "治疗", "text": "几个人身上喷毒，结束爆炸并留黏液囊肿。散开，囊肿对着风口对面丢。" },
-            { "nameZh": "狂暴侧风", "nameEn": "Raging Crosswinds", "tag": "重要", "text": "箭头互指，空中圈碰到就落地。没对上会往台边飘。" },
-            { "nameZh": "呼啸漩涡", "nameEn": "Howling Maelstrom", "tag": "重要", "text": "祭坛连吹几道飓风。叠中间，让风把自己推进预放的囊肿。" },
-            { "nameZh": "钻地", "nameEn": "Dig In", "tag": "重要", "text": "漩涡期间王钻地，25 秒受伤提高 30%。爆发窗。" },
-            { "nameZh": "乌拉泰克之息", "nameEn": "Ula'tek's Presence", "tag": "治疗", "text": "祭坛酸雾，全团持续自然伤。" }
+            {
+              "nameZh": "顶级猎手",
+              "nameEn": "Apex Predator",
+              "tag": "坦克",
+              "text": "5 连随机。撕裂是坦锥，换坦；残害是团锥，两组≥5 人轮流；飓风躲开。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 40,
+                    "label": "王"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 50,
+                    "y": 58,
+                    "label": "撕裂靠边"
+                  },
+                  {
+                    "id": "g1",
+                    "type": "soak",
+                    "x": 28,
+                    "y": 32,
+                    "r": 7,
+                    "label": "1组"
+                  },
+                  {
+                    "id": "g2",
+                    "type": "soak",
+                    "x": 72,
+                    "y": 32,
+                    "r": 7,
+                    "label": "2组"
+                  },
+                  {
+                    "id": "wind",
+                    "type": "proj",
+                    "label": "飓",
+                    "path": [
+                      [
+                        20,
+                        20
+                      ],
+                      [
+                        80,
+                        52
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "残害",
+              "nameEn": "Mutilate",
+              "tag": "重要",
+              "text": "不足 5 人秒人。吃过的人下次残害受伤提高 500%，必须换组。",
+              "diffs": [
+                "heroic",
+                "mythic"
+              ],
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "王"
+                  },
+                  {
+                    "id": "now",
+                    "type": "soak",
+                    "x": 30,
+                    "y": 42,
+                    "r": 8,
+                    "pulse": true,
+                    "label": "这组"
+                  },
+                  {
+                    "id": "next",
+                    "type": "soak",
+                    "x": 70,
+                    "y": 42,
+                    "r": 8,
+                    "label": "下组"
+                  },
+                  {
+                    "id": "swap",
+                    "type": "ranged",
+                    "label": "换组",
+                    "path": [
+                      [
+                        30,
+                        42
+                      ],
+                      [
+                        70,
+                        42
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "残害分摊",
+              "nameEn": "Mutilate soak",
+              "tag": "重要",
+              "text": "两组各至少 5 人轮流接锥形。同组别连吃。",
+              "methodText": "Mutilate",
+              "icyText": "Mutilate",
+              "diffs": [
+                "normal"
+              ],
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "王"
+                  },
+                  {
+                    "id": "g1",
+                    "type": "soak",
+                    "x": 30,
+                    "y": 42,
+                    "r": 8,
+                    "label": "1组"
+                  },
+                  {
+                    "id": "g2",
+                    "type": "soak",
+                    "x": 70,
+                    "y": 42,
+                    "r": 8,
+                    "label": "2组"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "腐蚀毒液",
+              "nameEn": "Corroding Venom",
+              "tag": "坦克",
+              "text": "每下普攻提高受到的物理伤害。叠层换坦。"
+            },
+            {
+              "nameZh": "毒涌",
+              "nameEn": "Venomous Surge",
+              "tag": "治疗",
+              "text": "几个人身上喷毒，结束爆炸并留黏液囊肿。散开，囊肿对着风口对面丢。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "vent",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 14,
+                    "label": "风口"
+                  },
+                  {
+                    "id": "p1",
+                    "type": "ranged",
+                    "label": "丢对面",
+                    "path": [
+                      [
+                        36,
+                        30
+                      ],
+                      [
+                        50,
+                        56
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "p2",
+                    "type": "healer",
+                    "label": "丢对面",
+                    "path": [
+                      [
+                        64,
+                        30
+                      ],
+                      [
+                        56,
+                        58
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "c1",
+                    "type": "drop",
+                    "x": 48,
+                    "y": 56,
+                    "r": 5,
+                    "label": "囊肿"
+                  },
+                  {
+                    "id": "c2",
+                    "type": "drop",
+                    "x": 58,
+                    "y": 58,
+                    "r": 4
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 40,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "狂暴侧风",
+              "nameEn": "Raging Crosswinds",
+              "tag": "重要",
+              "text": "箭头互指，空中圈碰到就落地。没对上会往台边飘。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 2800,
+                "actors": [
+                  {
+                    "id": "a",
+                    "type": "ranged",
+                    "label": "对撞",
+                    "path": [
+                      [
+                        24,
+                        28
+                      ],
+                      [
+                        46,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "type": "healer",
+                    "label": "对撞",
+                    "path": [
+                      [
+                        76,
+                        44
+                      ],
+                      [
+                        54,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "ok",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 36,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "碰上落地"
+                  },
+                  {
+                    "id": "edge",
+                    "type": "mark",
+                    "x": 84,
+                    "y": 56,
+                    "label": "别出台"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "呼啸漩涡",
+              "nameEn": "Howling Maelstrom",
+              "tag": "重要",
+              "text": "祭坛连吹几道飓风。叠中间，让风把自己推进预放的囊肿。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "wind",
+                    "type": "proj",
+                    "label": "风",
+                    "path": [
+                      [
+                        50,
+                        12
+                      ],
+                      [
+                        50,
+                        36
+                      ],
+                      [
+                        50,
+                        54
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 36,
+                    "label": "叠中"
+                  },
+                  {
+                    "id": "cyst",
+                    "type": "drop",
+                    "x": 50,
+                    "y": 56,
+                    "r": 6,
+                    "label": "弹回",
+                    "pulse": true
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "钻地",
+              "nameEn": "Dig In",
+              "tag": "重要",
+              "text": "漩涡期间王钻地，25 秒受伤提高 30%。爆发窗。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "钻地",
+                    "pulse": true
+                  },
+                  {
+                    "id": "dps",
+                    "type": "melee",
+                    "x": 42,
+                    "y": 44,
+                    "label": "爆发"
+                  },
+                  {
+                    "id": "rdps",
+                    "type": "ranged",
+                    "x": 62,
+                    "y": 28,
+                    "label": "打满"
+                  },
+                  {
+                    "id": "buff",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 20,
+                    "label": "30%"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "乌拉泰克之息",
+              "nameEn": "Ula'tek's Presence",
+              "tag": "治疗",
+              "text": "祭坛酸雾，全团持续自然伤。"
+            }
           ],
           "mythic": [
             "飓风更密。囊肿必须放对，钻地必须打满。"
@@ -399,9 +2795,13 @@
           "nameZh": "双牙",
           "nameEn": "The Twin Fangs",
           "methodUrl": "https://www.method.gg/guides/the-venomous-abyss/the-twin-fangs-heroic",
+          "icyUrl": "https://www.icy-veins.com/wow/twin-fangs-raid-guide",
+          "wipefestSlug": "the-twin-fangs",
           "setup": "2坦 / 4疗 / 14输出",
           "lust": "开场",
-          "need": ["三组分摊盛宴，或两组+免疫吃第三下"],
+          "need": [
+            "三组分摊盛宴，或两组+免疫吃第三下"
+          ],
           "overview": "永恒毒液 10 层即死、永不掉。只有贪食盛宴减层。两蛇不共血、不能挪，必须齐斩。第三轮潜水硬狂暴。",
           "plan": [
             {
@@ -451,15 +2851,442 @@
               "双目标专精舒服，必须齐斩"
             ]
           },
+          "positions": [
+            {
+              "title": "两蛇就地",
+              "caption": "两蛇不共血、不能挪。维克斯胡尔看倾泻，碎石者两组坦轮流接。必须齐斩。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "vix",
+                    "type": "boss",
+                    "x": 28,
+                    "y": 36,
+                    "label": "维克斯"
+                  },
+                  {
+                    "id": "shat",
+                    "type": "boss",
+                    "x": 72,
+                    "y": 36,
+                    "label": "碎石"
+                  },
+                  {
+                    "id": "t1",
+                    "type": "tank",
+                    "x": 28,
+                    "y": 50,
+                    "label": "倾泻坦"
+                  },
+                  {
+                    "id": "t2",
+                    "type": "tank",
+                    "x": 72,
+                    "y": 50,
+                    "label": "碎石坦"
+                  },
+                  {
+                    "id": "m1",
+                    "type": "melee",
+                    "x": 36,
+                    "y": 28,
+                    "label": "近"
+                  },
+                  {
+                    "id": "m2",
+                    "type": "melee",
+                    "x": 64,
+                    "y": 28,
+                    "label": "近"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "盛宴三组",
+              "caption": "贪食盛宴三下。每组只吃 1 下。低层去踩腐蚀团，高层去吃盛宴。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "vix",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 28,
+                    "label": "王"
+                  },
+                  {
+                    "id": "s1",
+                    "type": "soak",
+                    "x": 30,
+                    "y": 48,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "1组"
+                  },
+                  {
+                    "id": "s2",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 56,
+                    "r": 7,
+                    "label": "2组"
+                  },
+                  {
+                    "id": "s3",
+                    "type": "soak",
+                    "x": 70,
+                    "y": 48,
+                    "r": 7,
+                    "label": "3组"
+                  }
+                ]
+              }
+            }
+          ],
           "abilities": [
-            { "nameZh": "永恒毒液", "nameEn": "Eternal Venom", "tag": "灭团", "text": "绿色技能叠自然跳伤，永不掉。10 层即死。只有贪食盛宴能减 1 层。" },
-            { "nameZh": "腐蚀倾泻", "nameEn": "Caustic Deluge", "tag": "坦克", "text": "维克斯胡尔对当前目标引导并外喷，落点留腐蚀团。团员别站坦旁边。" },
-            { "nameZh": "腐蚀团", "nameEn": "Caustic Globule", "tag": "重要", "text": "一人踩一个。没人踩，10 秒后全团叠一层永恒毒液。" },
-            { "nameZh": "毒裔现身", "nameEn": "Venomous Emergence", "tag": "重要", "text": "不可避免地给全团叠一层，并出三只小蛇。清掉，躲开唾液线。" },
-            { "nameZh": "贪食盛宴", "nameEn": "Ravenous Feast", "tag": "重要", "text": "连吞三次。每次给被打到的人减 1 层，并上 800% 易伤。三组轮流，或两组加免疫吃第三下。" },
-            { "nameZh": "碎石者", "nameEn": "Stone Breaker", "tag": "坦克", "text": "吼开再连砸。砸到的人后续更疼。没人接，全团挨。两组坦轮流。" },
-            { "nameZh": "秽毒洪流", "nameEn": "Vile Flood", "tag": "重要", "text": "潜水时维克斯胡尔正面喷毒流。逆着球转穿过去，后面安全。" },
-            { "nameZh": "解缠之怒", "nameEn": "Uncoiled Wrath", "tag": "灭团", "text": "一只先死，活着的那只每 4 秒伤害提高 25%。必须齐斩。" }
+            {
+              "nameZh": "永恒毒液",
+              "nameEn": "Eternal Venom",
+              "tag": "灭团",
+              "text": "绿色技能叠自然跳伤，永不掉。10 层即死。只有贪食盛宴能减 1 层。"
+            },
+            {
+              "nameZh": "腐蚀倾泻",
+              "nameEn": "Caustic Deluge",
+              "tag": "坦克",
+              "text": "维克斯胡尔对当前目标引导并外喷，落点留腐蚀团。团员别站坦旁边。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 32,
+                    "y": 36,
+                    "label": "维克斯"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "label": "拉开",
+                    "path": [
+                      [
+                        32,
+                        50
+                      ],
+                      [
+                        22,
+                        58
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "glob",
+                    "type": "drop",
+                    "x": 22,
+                    "y": 58,
+                    "r": 5,
+                    "label": "团"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 30,
+                    "label": "别站旁边"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "腐蚀团",
+              "nameEn": "Caustic Globule",
+              "tag": "重要",
+              "text": "一人踩一个。没人踩，10 秒后全团叠一层永恒毒液。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "g1",
+                    "type": "drop",
+                    "x": 28,
+                    "y": 28,
+                    "r": 4,
+                    "label": "团"
+                  },
+                  {
+                    "id": "g2",
+                    "type": "drop",
+                    "x": 50,
+                    "y": 52,
+                    "r": 4,
+                    "label": "团"
+                  },
+                  {
+                    "id": "g3",
+                    "type": "drop",
+                    "x": 74,
+                    "y": 30,
+                    "r": 4,
+                    "label": "团"
+                  },
+                  {
+                    "id": "p1",
+                    "type": "ranged",
+                    "x": 28,
+                    "y": 28,
+                    "label": "踩"
+                  },
+                  {
+                    "id": "p2",
+                    "type": "healer",
+                    "x": 50,
+                    "y": 52,
+                    "label": "踩"
+                  },
+                  {
+                    "id": "p3",
+                    "type": "melee",
+                    "x": 74,
+                    "y": 30,
+                    "label": "踩"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "毒裔现身",
+              "nameEn": "Venomous Emergence",
+              "tag": "重要",
+              "text": "不可避免地给全团叠一层，并出三只小蛇。清掉，躲开唾液线。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "a1",
+                    "type": "add",
+                    "x": 30,
+                    "y": 24,
+                    "label": "裔"
+                  },
+                  {
+                    "id": "a2",
+                    "type": "add",
+                    "x": 50,
+                    "y": 54,
+                    "label": "裔"
+                  },
+                  {
+                    "id": "a3",
+                    "type": "add",
+                    "x": 72,
+                    "y": 28,
+                    "label": "裔"
+                  },
+                  {
+                    "id": "line",
+                    "type": "proj",
+                    "label": "唾液",
+                    "path": [
+                      [
+                        30,
+                        24
+                      ],
+                      [
+                        72,
+                        28
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "melee",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 36,
+                    "label": "先清"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "贪食盛宴",
+              "nameEn": "Ravenous Feast",
+              "tag": "重要",
+              "text": "连吞三次。每次给被打到的人减 1 层，并上 800% 易伤。三组轮流，或两组加免疫吃第三下。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 26,
+                    "label": "吞"
+                  },
+                  {
+                    "id": "s1",
+                    "type": "soak",
+                    "x": 30,
+                    "y": 48,
+                    "r": 7,
+                    "pulse": true,
+                    "label": "1"
+                  },
+                  {
+                    "id": "s2",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 56,
+                    "r": 7,
+                    "label": "2"
+                  },
+                  {
+                    "id": "s3",
+                    "type": "soak",
+                    "x": 70,
+                    "y": 48,
+                    "r": 7,
+                    "label": "3"
+                  },
+                  {
+                    "id": "done",
+                    "type": "ranged",
+                    "label": "吃过走开",
+                    "path": [
+                      [
+                        30,
+                        48
+                      ],
+                      [
+                        18,
+                        22
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "碎石者",
+              "nameEn": "Stone Breaker",
+              "tag": "坦克",
+              "text": "吼开再连砸。砸到的人后续更疼。没人接，全团挨。两组坦轮流。"
+            },
+            {
+              "nameZh": "秽毒洪流",
+              "nameEn": "Vile Flood",
+              "tag": "重要",
+              "text": "潜水时维克斯胡尔正面喷毒流。逆着球转穿过去，后面安全。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3800,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 36,
+                    "y": 36,
+                    "label": "维克斯"
+                  },
+                  {
+                    "id": "flood",
+                    "type": "drop",
+                    "label": "洪流",
+                    "path": [
+                      [
+                        50,
+                        16
+                      ],
+                      [
+                        72,
+                        28
+                      ],
+                      [
+                        74,
+                        50
+                      ],
+                      [
+                        50,
+                        60
+                      ],
+                      [
+                        28,
+                        50
+                      ]
+                    ],
+                    "r": 6
+                  },
+                  {
+                    "id": "cut",
+                    "type": "melee",
+                    "label": "逆穿",
+                    "path": [
+                      [
+                        62,
+                        44
+                      ],
+                      [
+                        48,
+                        36
+                      ],
+                      [
+                        36,
+                        28
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "safe",
+                    "type": "healer",
+                    "x": 24,
+                    "y": 20,
+                    "label": "后面安全"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "解缠之怒",
+              "nameEn": "Uncoiled Wrath",
+              "tag": "灭团",
+              "text": "一只先死，活着的那只每 4 秒伤害提高 25%。必须齐斩。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 2800,
+                "actors": [
+                  {
+                    "id": "dead",
+                    "type": "mark",
+                    "x": 28,
+                    "y": 36,
+                    "label": "先死"
+                  },
+                  {
+                    "id": "live",
+                    "type": "boss",
+                    "x": 68,
+                    "y": 36,
+                    "label": "狂怒",
+                    "pulse": true
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 50,
+                    "label": "齐斩"
+                  }
+                ]
+              }
+            }
           ],
           "mythic": [
             "毒层涨得更快。盛宴必须按层数进，别全挤。第三轮潜水仍是硬死线。"
@@ -469,9 +3296,14 @@
           "id": "altar",
           "nameZh": "盘绕祭坛",
           "nameEn": "The Coiled Altar",
+          "icyUrl": "https://www.icy-veins.com/wow/coiled-altar-raid-guide",
+          "wipefestSlug": "the-coiled-altar",
           "setup": "2坦 / 4疗 / 14输出",
           "lust": "束缚期间",
-          "need": ["断头台两组≥5", "打断灵魂尖笑"],
+          "need": [
+            "断头台两组≥5",
+            "打断灵魂尖笑"
+          ],
           "overview": "三段。先祖尔詹，收凝血球用斩裂清；再玛拉卡斯，救人、斩魂清鬼；束缚期间斩祖尔詹；最后两套机制同时，齐斩。",
           "plan": [
             {
@@ -530,16 +3362,550 @@
               "束缚读条内斩杀祖尔詹"
             ]
           },
+          "positions": [
+            {
+              "title": "一阶段收球",
+              "caption": "中场松散叠。凝血球收到指定点，坦用斩裂扫掉。英雄别一次清太多。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 40,
+                    "label": "祖尔詹"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 50,
+                    "label": "松散叠"
+                  },
+                  {
+                    "id": "b1",
+                    "type": "drop",
+                    "label": "球",
+                    "path": [
+                      [
+                        28,
+                        22
+                      ],
+                      [
+                        64,
+                        28
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "b2",
+                    "type": "drop",
+                    "label": "球",
+                    "path": [
+                      [
+                        36,
+                        56
+                      ],
+                      [
+                        64,
+                        30
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "pile",
+                    "type": "mark",
+                    "x": 66,
+                    "y": 28,
+                    "label": "收这里"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 62,
+                    "y": 36,
+                    "label": "斩裂"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "二阶段行军",
+              "caption": "偏一侧叠，控恐惧行军方向。破盾后把鬼带到中间面对定住，斩魂清。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3800,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 38,
+                    "y": 40,
+                    "label": "玛拉卡斯"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 32,
+                    "y": 50,
+                    "label": "偏一侧"
+                  },
+                  {
+                    "id": "march",
+                    "type": "ranged",
+                    "label": "行军",
+                    "path": [
+                      [
+                        40,
+                        36
+                      ],
+                      [
+                        62,
+                        28
+                      ],
+                      [
+                        80,
+                        20
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "edge",
+                    "type": "mark",
+                    "x": 84,
+                    "y": 16,
+                    "label": "台边"
+                  },
+                  {
+                    "id": "ghost",
+                    "type": "add",
+                    "label": "鬼",
+                    "path": [
+                      [
+                        70,
+                        24
+                      ],
+                      [
+                        50,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 50,
+                    "y": 36,
+                    "label": "斩魂"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "束缚拦碎裂",
+              "caption": "祖尔詹受伤提高 100%，嗜血在这里。围着他错开拦碎裂体，别同时踩。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "祖尔詹",
+                    "pulse": true
+                  },
+                  {
+                    "id": "s1",
+                    "type": "soak",
+                    "x": 34,
+                    "y": 28,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "先拦"
+                  },
+                  {
+                    "id": "s2",
+                    "type": "soak",
+                    "x": 66,
+                    "y": 28,
+                    "r": 6,
+                    "label": "再拦"
+                  },
+                  {
+                    "id": "s3",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 54,
+                    "r": 6,
+                    "label": "后拦"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 44,
+                    "label": "嗜血斩"
+                  }
+                ]
+              },
+              "diffs": [
+                "heroic",
+                "mythic"
+              ]
+            }
+          ],
           "abilities": [
-            { "nameZh": "毒液倾盆", "nameEn": "Toxic Deluge", "tag": "重要", "text": "绿圈落地成凝血球。收到指定点，用斩裂清。英雄：同时清太多会叠跳伤。" },
-            { "nameZh": "斩裂", "nameEn": "Sever", "tag": "坦克", "text": "祖尔詹正面锥形重砍，再吃受伤提高。锥形能清凝血球。每下换坦。" },
-            { "nameZh": "断头台", "nameEn": "Guillotine", "tag": "重要", "text": "至少 5 人分摊。英雄：吃过的人下次受伤提高 500%，必须换组。寡妇之吻后离开。" },
-            { "nameZh": "盘绕祭坛之牙", "nameEn": "Fangs of the Coiled Altar", "tag": "治疗", "text": "祖尔詹抽祭坛，全团伤，同时铺开枯萎地。" },
-            { "nameZh": "恐惧行军", "nameEn": "Dreadmarch", "tag": "重要", "text": "控几个人上吸收盾，逼他们走向台边。盾破了出恐惧造物。" },
-            { "nameZh": "斩魂", "nameEn": "Soul Sever", "tag": "坦克", "text": "玛拉卡斯正面锥形。打到的恐惧造物会被清掉；被打到的人要捡 3 个魂片。" },
-            { "nameZh": "永夜降临", "nameEn": "Eternal Nightfall", "tag": "灭团", "text": "先套暮光帷幕再读毁灭一击。帷幕打碎才能打断。" },
-            { "nameZh": "灵魂尖笑", "nameEn": "Spiritcackle", "tag": "重要", "text": "英雄出小怪，反复读恐惧哀嚎。指定人打断并杀掉。" },
-            { "nameZh": "灵魂束缚", "nameEn": "Soulbinding", "tag": "重要", "text": "玛拉卡斯倒地后绑祖尔詹。祖尔詹受伤提高 100%。碎裂体要拦，读完会拉傀儡。" }
+            {
+              "nameZh": "毒液倾盆",
+              "nameEn": "Toxic Deluge",
+              "tag": "重要",
+              "text": "绿圈落地成凝血球。收到指定点，用斩裂清。英雄：同时清太多会叠跳伤。",
+              "normalText": "绿圈落地成凝血球。收到指定点，用斩裂清。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "b1",
+                    "type": "drop",
+                    "label": "球",
+                    "path": [
+                      [
+                        24,
+                        24
+                      ],
+                      [
+                        68,
+                        30
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "b2",
+                    "type": "drop",
+                    "label": "球",
+                    "path": [
+                      [
+                        40,
+                        58
+                      ],
+                      [
+                        68,
+                        32
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "pile",
+                    "type": "mark",
+                    "x": 70,
+                    "y": 30,
+                    "label": "收点"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 46,
+                    "y": 40,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "斩裂",
+              "nameEn": "Sever",
+              "tag": "坦克",
+              "text": "祖尔詹正面锥形重砍，再吃受伤提高。锥形能清凝血球。每下换坦。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 44,
+                    "y": 40,
+                    "label": "祖尔詹"
+                  },
+                  {
+                    "id": "cone",
+                    "type": "soak",
+                    "x": 64,
+                    "y": 32,
+                    "r": 9,
+                    "pulse": true,
+                    "label": "锥"
+                  },
+                  {
+                    "id": "ball",
+                    "type": "drop",
+                    "x": 66,
+                    "y": 30,
+                    "r": 4,
+                    "label": "球"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 62,
+                    "y": 38,
+                    "label": "换坦"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "断头台",
+              "nameEn": "Guillotine",
+              "tag": "重要",
+              "text": "至少 5 人分摊。英雄：吃过的人下次受伤提高 500%，必须换组。寡妇之吻后离开。",
+              "normalText": "至少 5 人分摊。寡妇之吻后离开。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 30,
+                    "label": "王"
+                  },
+                  {
+                    "id": "g1",
+                    "type": "soak",
+                    "x": 32,
+                    "y": 48,
+                    "r": 8,
+                    "pulse": true,
+                    "label": "1组"
+                  },
+                  {
+                    "id": "g2",
+                    "type": "soak",
+                    "x": 68,
+                    "y": 48,
+                    "r": 8,
+                    "label": "2组"
+                  },
+                  {
+                    "id": "leave",
+                    "type": "ranged",
+                    "label": "吻后离开",
+                    "path": [
+                      [
+                        32,
+                        48
+                      ],
+                      [
+                        18,
+                        22
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "盘绕祭坛之牙",
+              "nameEn": "Fangs of the Coiled Altar",
+              "tag": "治疗",
+              "text": "祖尔詹抽祭坛，全团伤，同时铺开枯萎地。"
+            },
+            {
+              "nameZh": "恐惧行军",
+              "nameEn": "Dreadmarch",
+              "tag": "重要",
+              "text": "控几个人上吸收盾，逼他们走向台边。盾破了出恐惧造物。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3800,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 36,
+                    "y": 40,
+                    "label": "王"
+                  },
+                  {
+                    "id": "m1",
+                    "type": "ranged",
+                    "label": "行军",
+                    "path": [
+                      [
+                        42,
+                        36
+                      ],
+                      [
+                        68,
+                        24
+                      ],
+                      [
+                        82,
+                        16
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "break",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 36,
+                    "label": "破盾"
+                  },
+                  {
+                    "id": "edge",
+                    "type": "mark",
+                    "x": 86,
+                    "y": 14,
+                    "label": "台边"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "斩魂",
+              "nameEn": "Soul Sever",
+              "tag": "坦克",
+              "text": "玛拉卡斯正面锥形。打到的恐惧造物会被清掉；被打到的人要捡 3 个魂片。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 40,
+                    "y": 40,
+                    "label": "玛拉卡斯"
+                  },
+                  {
+                    "id": "cone",
+                    "type": "soak",
+                    "x": 58,
+                    "y": 36,
+                    "r": 8,
+                    "pulse": true,
+                    "label": "锥"
+                  },
+                  {
+                    "id": "ghost",
+                    "type": "add",
+                    "x": 60,
+                    "y": 34,
+                    "label": "鬼"
+                  },
+                  {
+                    "id": "orb",
+                    "type": "mark",
+                    "x": 68,
+                    "y": 48,
+                    "label": "魂片"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 56,
+                    "y": 44,
+                    "label": "捡3"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "永夜降临",
+              "nameEn": "Eternal Nightfall",
+              "tag": "灭团",
+              "text": "先套暮光帷幕再读毁灭一击。帷幕打碎才能打断。"
+            },
+            {
+              "nameZh": "灵魂尖笑",
+              "nameEn": "Spiritcackle",
+              "tag": "重要",
+              "text": "英雄出小怪，反复读恐惧哀嚎。指定人打断并杀掉。",
+              "diffs": [
+                "heroic",
+                "mythic"
+              ],
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "add",
+                    "type": "add",
+                    "x": 68,
+                    "y": 28,
+                    "label": "尖笑",
+                    "pulse": true
+                  },
+                  {
+                    "id": "kick",
+                    "type": "ranged",
+                    "x": 62,
+                    "y": 36,
+                    "label": "打断"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 40,
+                    "y": 42,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "灵魂束缚",
+              "nameEn": "Soulbinding",
+              "tag": "重要",
+              "text": "玛拉卡斯倒地后绑祖尔詹。祖尔詹受伤提高 100%。碎裂体要拦，读完会拉傀儡。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "100%",
+                    "pulse": true
+                  },
+                  {
+                    "id": "s1",
+                    "type": "soak",
+                    "x": 34,
+                    "y": 26,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "拦"
+                  },
+                  {
+                    "id": "s2",
+                    "type": "soak",
+                    "x": 66,
+                    "y": 26,
+                    "r": 6,
+                    "label": "错开"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 48,
+                    "label": "嗜血"
+                  }
+                ]
+              }
+            }
           ],
           "mythic": [
             "凝血球会变异，行军的鬼只有被盯的人看得见。束缚连拦会叠易伤。机制仍是：收球、救人、打帷幕、束缚斩杀。"
@@ -549,6 +3915,8 @@
           "id": "ulatek",
           "nameZh": "乌拉泰克",
           "nameEn": "Ula'tek",
+          "icyUrl": "https://www.icy-veins.com/wow/ulatek-raid-guide",
+          "wipefestSlug": "ulatek",
           "setup": "2坦 / 4疗 / 14输出",
           "lust": "囚徒之怒",
           "overview": "末王。腐蚀波扫过蛋会孵毒鳞蝰；子嗣扔腐臭薄膜。幽魂盘绕砸地要叠人。囚徒之怒时毒心暴露，是爆发窗。围猎拆台，安全区越来越小。Method 英雄页尚未上线。",
@@ -585,14 +3953,374 @@
               "围猎保持中等距离"
             ]
           },
+          "positions": [
+            {
+              "title": "波让蛋",
+              "caption": "腐蚀波扫过蛋会立刻孵蛇。让开蛋，别把波带过去。子嗣尽快清。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "e1",
+                    "type": "mark",
+                    "x": 22,
+                    "y": 24,
+                    "label": "蛋"
+                  },
+                  {
+                    "id": "e2",
+                    "type": "mark",
+                    "x": 78,
+                    "y": 24,
+                    "label": "蛋"
+                  },
+                  {
+                    "id": "e3",
+                    "type": "mark",
+                    "x": 22,
+                    "y": 50,
+                    "label": "蛋"
+                  },
+                  {
+                    "id": "wave",
+                    "type": "proj",
+                    "label": "波",
+                    "path": [
+                      [
+                        18,
+                        36
+                      ],
+                      [
+                        82,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 50,
+                    "y": 48,
+                    "label": "让开蛋"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "围猎中距",
+              "caption": "拆一块台，逼人靠拢。贴太近击退，13 码外也疼。保持中距。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "王"
+                  },
+                  {
+                    "id": "near",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "label": "太近"
+                  },
+                  {
+                    "id": "ok",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 36,
+                    "r": 16,
+                    "label": "中距"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "ranged",
+                    "x": 68,
+                    "y": 24,
+                    "label": "中圈"
+                  },
+                  {
+                    "id": "fall",
+                    "type": "drop",
+                    "x": 84,
+                    "y": 56,
+                    "r": 6,
+                    "label": "拆台"
+                  }
+                ]
+              }
+            }
+          ],
           "abilities": [
-            { "nameZh": "腐蚀波", "nameEn": "Caustic Waves", "tag": "重要", "text": "毒波推过台面，先一下再跳。波碰到蛋立刻孵蛇。让开蛋。" },
-            { "nameZh": "腐臭薄膜", "nameEn": "Putrid Membrane", "tag": "治疗", "text": "毒鳞蝰孵出时碎片飞人，自然跳伤。蛇要尽快清。" },
-            { "nameZh": "幽魂盘绕", "nameEn": "Spectral Coils", "tag": "重要", "text": "幻影蛇身砸地。落点附近人越多越轻。叠上去吃。" },
-            { "nameZh": "母神之怒", "nameEn": "Mother's Wrath", "tag": "坦克", "text": "把当前目标甩开并锁定，持续高额自然伤。" },
-            { "nameZh": "囚徒之怒", "nameEn": "Rage of the Shackled", "tag": "灭团", "text": "全团脉冲伤加落石。这阵子她不护毒心，全力打毒心。" },
-            { "nameZh": "巨蛇召唤", "nameEn": "Call of the Serpent", "tag": "重要", "text": "吼一声震场，天花板掉新子嗣。清。" },
-            { "nameZh": "围猎", "nameEn": "Circling Prey", "tag": "重要", "text": "拆一块台，逼人靠拢。近了巨伤击退，13 码外也疼。保持中距。" }
+            {
+              "nameZh": "腐蚀波",
+              "nameEn": "Caustic Waves",
+              "tag": "重要",
+              "text": "毒波推过台面，先一下再跳。波碰到蛋立刻孵蛇。让开蛋。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "egg",
+                    "type": "mark",
+                    "x": 78,
+                    "y": 24,
+                    "label": "蛋"
+                  },
+                  {
+                    "id": "wave",
+                    "type": "proj",
+                    "label": "波",
+                    "path": [
+                      [
+                        16,
+                        40
+                      ],
+                      [
+                        50,
+                        36
+                      ],
+                      [
+                        80,
+                        26
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "safe",
+                    "type": "melee",
+                    "x": 40,
+                    "y": 52,
+                    "label": "别带过去"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "腐臭薄膜",
+              "nameEn": "Putrid Membrane",
+              "tag": "治疗",
+              "text": "毒鳞蝰孵出时碎片飞人，自然跳伤。蛇要尽快清。"
+            },
+            {
+              "nameZh": "幽魂盘绕",
+              "nameEn": "Spectral Coils",
+              "tag": "重要",
+              "text": "幻影蛇身砸地。落点附近人越多越轻。叠上去吃。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "soak",
+                    "type": "soak",
+                    "x": 50,
+                    "y": 40,
+                    "r": 10,
+                    "pulse": true,
+                    "label": "叠"
+                  },
+                  {
+                    "id": "m1",
+                    "type": "melee",
+                    "x": 46,
+                    "y": 38
+                  },
+                  {
+                    "id": "m2",
+                    "type": "healer",
+                    "x": 54,
+                    "y": 42
+                  },
+                  {
+                    "id": "m3",
+                    "type": "ranged",
+                    "x": 50,
+                    "y": 46
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 24,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "母神之怒",
+              "nameEn": "Mother's Wrath",
+              "tag": "坦克",
+              "text": "把当前目标甩开并锁定，持续高额自然伤。"
+            },
+            {
+              "nameZh": "囚徒之怒",
+              "nameEn": "Rage of the Shackled",
+              "tag": "灭团",
+              "text": "全团脉冲伤加落石。这阵子她不护毒心，全力打毒心。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 2800,
+                "actors": [
+                  {
+                    "id": "heart",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 36,
+                    "label": "毒心",
+                    "pulse": true
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 28,
+                    "label": "不护"
+                  },
+                  {
+                    "id": "dps",
+                    "type": "melee",
+                    "x": 42,
+                    "y": 44,
+                    "label": "爆发"
+                  },
+                  {
+                    "id": "rdps",
+                    "type": "ranged",
+                    "x": 64,
+                    "y": 44,
+                    "label": "打满"
+                  },
+                  {
+                    "id": "rock",
+                    "type": "drop",
+                    "x": 72,
+                    "y": 20,
+                    "r": 4,
+                    "label": "石"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "巨蛇召唤",
+              "nameEn": "Call of the Serpent",
+              "tag": "重要",
+              "text": "吼一声震场，天花板掉新子嗣。清。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "吼"
+                  },
+                  {
+                    "id": "a1",
+                    "type": "add",
+                    "label": "子嗣",
+                    "path": [
+                      [
+                        30,
+                        10
+                      ],
+                      [
+                        30,
+                        28
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "a2",
+                    "type": "add",
+                    "label": "子嗣",
+                    "path": [
+                      [
+                        70,
+                        10
+                      ],
+                      [
+                        70,
+                        28
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "kill",
+                    "type": "ranged",
+                    "x": 50,
+                    "y": 50,
+                    "label": "清"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "围猎",
+              "nameEn": "Circling Prey",
+              "tag": "重要",
+              "text": "拆一块台，逼人靠拢。近了巨伤击退，13 码外也疼。保持中距。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 36,
+                    "label": "王"
+                  },
+                  {
+                    "id": "near",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 7,
+                    "label": "近了"
+                  },
+                  {
+                    "id": "ok",
+                    "type": "ranged",
+                    "x": 68,
+                    "y": 26,
+                    "label": "中距"
+                  },
+                  {
+                    "id": "fall",
+                    "type": "drop",
+                    "x": 86,
+                    "y": 54,
+                    "r": 6,
+                    "label": "掉台"
+                  }
+                ]
+              }
+            }
           ],
           "mythic": [
             "Method / Icy Veins 英雄页都还没正文。台拆得更快，毒心窗必须打满。各部位共血条，不用分头打。"
@@ -615,9 +4343,13 @@
           "nameZh": "尼姆瑞莎·唤波者",
           "nameEn": "Nymrissa Wavecaller",
           "methodUrl": "https://www.method.gg/guides/where-to-find-the-tidebound-grotto-lair-in-wow-midnight",
+          "wipefestSlug": "nymrissa-wavecaller",
+          "methodGuide": false,
           "setup": "2坦 / 4疗 / 其余输出",
           "lust": "开场",
-          "need": ["减速 / 定身 / 击退控鱼人"],
+          "need": [
+            "减速 / 定身 / 击退控鱼人"
+          ],
           "overview": "单阶段循环。诱人水泡吸泡鳍滩行者；鱼人进泡变泡鳍狂战士，全团吃脉动潮汐。控鱼人第一，打王第二。",
           "plan": [
             {
@@ -665,15 +4397,458 @@
               "踩冰球，寒霜别丢在鱼人路上"
             ]
           },
+          "positions": [
+            {
+              "title": "水泡控鱼人",
+              "caption": "水泡一出就转火控滩行者。进泡变狂战士。王位固定，方便拦截。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "bubble",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 9,
+                    "label": "水泡",
+                    "pulse": true
+                  },
+                  {
+                    "id": "m1",
+                    "type": "add",
+                    "label": "滩行",
+                    "path": [
+                      [
+                        18,
+                        20
+                      ],
+                      [
+                        30,
+                        26
+                      ],
+                      [
+                        42,
+                        32
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "m2",
+                    "type": "add",
+                    "label": "滩行",
+                    "path": [
+                      [
+                        82,
+                        50
+                      ],
+                      [
+                        70,
+                        44
+                      ],
+                      [
+                        58,
+                        40
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "stop",
+                    "type": "soak",
+                    "x": 36,
+                    "y": 28,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "控住"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 54,
+                    "label": "王"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "x": 50,
+                    "y": 62,
+                    "label": "固定"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "破泡留空",
+              "caption": "破泡全团击退。身后留空，别被推进漩涡。史诗水箭可冲残留寒霜。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "bubble",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "label": "破泡"
+                  },
+                  {
+                    "id": "kb",
+                    "type": "ranged",
+                    "label": "击退",
+                    "path": [
+                      [
+                        50,
+                        36
+                      ],
+                      [
+                        78,
+                        22
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "pool",
+                    "type": "drop",
+                    "x": 82,
+                    "y": 18,
+                    "r": 6,
+                    "label": "漩涡"
+                  },
+                  {
+                    "id": "raid",
+                    "type": "melee",
+                    "x": 42,
+                    "y": 48,
+                    "label": "身后留空"
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 54,
+                    "label": "王"
+                  }
+                ]
+              }
+            }
+          ],
           "abilities": [
-            { "nameZh": "诱人水泡", "nameEn": "Alluring Bubble", "tag": "重要", "text": "场中大泡，吸泡鳍滩行者。进泡的变狂战士。破泡全团冰霜伤并击退。" },
-            { "nameZh": "泡鳍滩行者", "nameEn": "Bubblefin Shorerunner", "tag": "重要", "text": "往水泡跑。减速、定身、击退，进泡前杀掉。" },
-            { "nameZh": "泡鳍狂战士", "nameEn": "Bubblefin Berserker", "tag": "灭团", "text": "进泡后变身，脉动潮汐打全团。立刻转火。" },
-            { "nameZh": "激荡漩涡", "nameEn": "Swirling Whirlpools", "tag": "重要", "text": "漩涡冲向水泡，路上冰霜伤，并破泡强化泡内鱼人。躲开路径。" },
-            { "nameZh": "深渊之雨", "nameEn": "Abyssal Rain", "tag": "治疗", "text": "全团冰霜爆发。英雄给王叠唤波者之力。" },
-            { "nameZh": "水箭", "nameEn": "Water Jet", "tag": "坦克", "text": "对当前目标持续水压，会推人并提高后续水箭和冰霜受伤。史诗可冲掉残留寒霜。" },
-            { "nameZh": "刺骨寒霜", "nameEn": "Chilling Frost", "tag": "重要", "text": "点名减速并留冰球。英雄：不踩会炸。踩了出残留寒霜，人会打滑。" },
-            { "nameZh": "无尽潮汐", "nameEn": "Unending Tides", "tag": "灭团", "text": "后期全团连续水击。软狂暴，必须在这之前打短。" }
+            {
+              "nameZh": "诱人水泡",
+              "nameEn": "Alluring Bubble",
+              "tag": "重要",
+              "text": "场中大泡，吸泡鳍滩行者。进泡的变狂战士。破泡全团冰霜伤并击退。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3600,
+                "actors": [
+                  {
+                    "id": "bubble",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 10,
+                    "label": "泡",
+                    "pulse": true
+                  },
+                  {
+                    "id": "add",
+                    "type": "add",
+                    "label": "吸进去",
+                    "path": [
+                      [
+                        20,
+                        22
+                      ],
+                      [
+                        50,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 56,
+                    "label": "王"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "泡鳍滩行者",
+              "nameEn": "Bubblefin Shorerunner",
+              "tag": "重要",
+              "text": "往水泡跑。减速、定身、击退，进泡前杀掉。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "bubble",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "label": "泡"
+                  },
+                  {
+                    "id": "add",
+                    "type": "add",
+                    "label": "滩行",
+                    "path": [
+                      [
+                        16,
+                        18
+                      ],
+                      [
+                        28,
+                        24
+                      ],
+                      [
+                        38,
+                        30
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "cc",
+                    "type": "ranged",
+                    "x": 34,
+                    "y": 28,
+                    "label": "控杀"
+                  },
+                  {
+                    "id": "stop",
+                    "type": "soak",
+                    "x": 36,
+                    "y": 28,
+                    "r": 5,
+                    "pulse": true
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "泡鳍狂战士",
+              "nameEn": "Bubblefin Berserker",
+              "tag": "灭团",
+              "text": "进泡后变身，脉动潮汐打全团。立刻转火。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 2800,
+                "actors": [
+                  {
+                    "id": "bubble",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 9,
+                    "label": "泡"
+                  },
+                  {
+                    "id": "berz",
+                    "type": "add",
+                    "x": 50,
+                    "y": 36,
+                    "label": "狂战士",
+                    "pulse": true
+                  },
+                  {
+                    "id": "kill",
+                    "type": "melee",
+                    "x": 62,
+                    "y": 44,
+                    "label": "转火"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "激荡漩涡",
+              "nameEn": "Swirling Whirlpools",
+              "tag": "重要",
+              "text": "漩涡冲向水泡，路上冰霜伤，并破泡强化泡内鱼人。躲开路径。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3400,
+                "actors": [
+                  {
+                    "id": "bubble",
+                    "type": "hazard",
+                    "x": 50,
+                    "y": 36,
+                    "r": 8,
+                    "label": "泡"
+                  },
+                  {
+                    "id": "whirl",
+                    "type": "drop",
+                    "label": "漩涡",
+                    "path": [
+                      [
+                        18,
+                        56
+                      ],
+                      [
+                        32,
+                        48
+                      ],
+                      [
+                        50,
+                        36
+                      ]
+                    ],
+                    "r": 6
+                  },
+                  {
+                    "id": "safe",
+                    "type": "ranged",
+                    "x": 70,
+                    "y": 24,
+                    "label": "躲开"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "深渊之雨",
+              "nameEn": "Abyssal Rain",
+              "tag": "治疗",
+              "text": "全团冰霜爆发。英雄给王叠唤波者之力。",
+              "normalText": "全团冰霜爆发。铺好治疗。"
+            },
+            {
+              "nameZh": "水箭",
+              "nameEn": "Water Jet",
+              "tag": "坦克",
+              "text": "对当前目标持续水压，会推人并提高后续水箭和冰霜受伤。",
+              "mythicText": "对当前目标持续水压，会推人。史诗用来冲掉残留寒霜。",
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3000,
+                "actors": [
+                  {
+                    "id": "boss",
+                    "type": "boss",
+                    "x": 50,
+                    "y": 50,
+                    "label": "王"
+                  },
+                  {
+                    "id": "tank",
+                    "type": "tank",
+                    "label": "被推",
+                    "path": [
+                      [
+                        50,
+                        58
+                      ],
+                      [
+                        50,
+                        18
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "jet",
+                    "type": "proj",
+                    "from": "boss",
+                    "to": "tank"
+                  },
+                  {
+                    "id": "space",
+                    "type": "mark",
+                    "x": 50,
+                    "y": 12,
+                    "label": "留空"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "刺骨寒霜",
+              "nameEn": "Chilling Frost",
+              "tag": "重要",
+              "text": "点名减速并留冰球。英雄：不踩会炸。踩了出残留寒霜，人会打滑。",
+              "normalText": "点名减速并留冰。躲开，别把路堵死。",
+              "diffs": [
+                "heroic",
+                "mythic"
+              ],
+              "scene": {
+                "arena": "circle",
+                "loopMs": 3200,
+                "actors": [
+                  {
+                    "id": "orb",
+                    "type": "soak",
+                    "x": 34,
+                    "y": 28,
+                    "r": 6,
+                    "pulse": true,
+                    "label": "踩"
+                  },
+                  {
+                    "id": "p1",
+                    "type": "ranged",
+                    "x": 34,
+                    "y": 28,
+                    "label": "指定"
+                  },
+                  {
+                    "id": "frost",
+                    "type": "drop",
+                    "x": 28,
+                    "y": 40,
+                    "r": 5,
+                    "label": "寒霜"
+                  },
+                  {
+                    "id": "path",
+                    "type": "add",
+                    "label": "鱼人路",
+                    "path": [
+                      [
+                        16,
+                        20
+                      ],
+                      [
+                        50,
+                        36
+                      ]
+                    ]
+                  },
+                  {
+                    "id": "bad",
+                    "type": "mark",
+                    "x": 42,
+                    "y": 32,
+                    "label": "别堵路"
+                  }
+                ]
+              }
+            },
+            {
+              "nameZh": "冰面",
+              "nameEn": "Chilling Frost",
+              "tag": "重要",
+              "text": "点名减速并留冰。躲开落点，别把鱼人拦截线堵死。",
+              "methodText": "Chilling Frost",
+              "icyText": "Chilling Frost",
+              "diffs": [
+                "normal"
+              ]
+            },
+            {
+              "nameZh": "无尽潮汐",
+              "nameEn": "Unending Tides",
+              "tag": "灭团",
+              "text": "后期全团连续水击。软狂暴，必须在这之前打短。"
+            }
           ],
           "mythic": [
             "泡鳍霜鳞鱼给附近减伤，先打霜鳞再打被水雾盾护着的滩行者。水箭用来冲残留寒霜。弹性 15–25 人。"
