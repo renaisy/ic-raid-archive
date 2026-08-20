@@ -513,7 +513,7 @@ function send(res, code, obj) {
 
 function serveStatic(req, res) {
   let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
-  if (urlPath === "/") urlPath = "/index.html";
+  if (urlPath === "/" || /^\/[nr]\/[^/]+\/?$/.test(urlPath)) urlPath = "/index.html";
   const file = path.normalize(path.join(PUBLIC, urlPath));
   if (!file.startsWith(PUBLIC)) {
     res.writeHead(403);
@@ -597,6 +597,17 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/api/season") {
       const from = url.searchParams.get("from") || store.config.seasonStart || DEFAULT_SEASON;
       send(res, 200, seasonPayload(store, from));
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/night") {
+      const found = findNight(store, String(url.searchParams.get("id") || "").slice(0, 32));
+      if (!found) {
+        send(res, 404, { error: "找不到这场开团" });
+        return;
+      }
+      const pub = publicNights(found.bucket).find((n) => n.id === found.night.id);
+      send(res, 200, { week: found.week, night: pub || found.night });
       return;
     }
 

@@ -56,7 +56,47 @@ const state = {
   rangeMode: "week",
   boardChar: "",
   journalBoss: "",
+  nightId: "",
 };
+
+function nightFromRoute() {
+  const path = decodeURIComponent((location.pathname || "").split("?")[0]);
+  const m = path.match(/^\/[nr]\/([^/]+)\/?$/);
+  if (m) return m[1];
+  const q = new URLSearchParams(location.search).get("n");
+  if (q) return q;
+  return "";
+}
+
+function nightShareUrl(id) {
+  return `${location.origin}/n/${encodeURIComponent(id)}`;
+}
+
+function findNightLocal(id) {
+  return allNights().find((n) => n && n.id === id) || null;
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (_) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-999px";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    } catch (__) {
+      return false;
+    }
+  }
+}
 
 function el(html) {
   const d = document.createElement("div");
@@ -322,7 +362,9 @@ function renderLogin() {
   const box = el(`<div class="login-page">
     <div class="login card">
       <div class="brand"><span class="brand-mark">ZOO</span><h1>海加尔 · ZOO</h1></div>
-      <p class="muted lead">国服海加尔公会专属档案。角色可只填名字，默认补「-海加尔」。游戏内 <code>/icrc export</code> 或 <code>/icrl export</code> 复制后贴到本周页。</p>
+      <p class="muted lead">${state.nightId
+        ? "登录后将打开这场开团的报名页，可查看名单并报名。"
+        : "国服海加尔公会专属档案。角色可只填名字，默认补「-海加尔」。游戏内 <code>/icrc export</code> 或 <code>/icrl export</code> 复制后贴到本周页。"}</p>
       <label for="name">角色名</label>
       <input id="name" name="username" autocomplete="username" placeholder="只填名字即可" value="${esc(shortName(state.name) === "?" ? "" : shortName(state.name))}" />
       <label for="code">邀请码</label>
@@ -409,6 +451,12 @@ function bindShell(wrap) {
       gotoTab(btn.getAttribute("data-tab"));
     };
   });
+  wrap.querySelectorAll("[data-share]").forEach((btn) => {
+    btn.onclick = () => shareNight(btn.getAttribute("data-share"), btn);
+  });
+  wrap.querySelectorAll("[data-open-night]").forEach((btn) => {
+    btn.onclick = () => openNight(btn.getAttribute("data-open-night"));
+  });
   const moreBtn = wrap.querySelector("#moreOpen");
   const sheet = wrap.querySelector("#moreSheet");
   const backdrop = wrap.querySelector("#moreClose");
@@ -441,7 +489,7 @@ function shellHtml(d) {
     `<button type="button"${state.tab === id ? " class=\"on\"" : ""} data-tab="${id}">${label}</button>`
   ).join("");
   const dock = DOCK_TABS.map(([id, label]) =>
-    `<button type="button"${state.tab === id ? " class=\"on\"" : ""} data-tab="${id}">${label}</button>`
+    `<button type="button"${state.tab === id || (id === "calendar" && state.tab === "signup") ? " class=\"on\"" : ""} data-tab="${id}">${label}</button>`
   ).join("");
   const moreItems = TABS.filter(([id]) => MORE_TABS.has(id)).map(([id, label]) =>
     `<button type="button" class="ghost${state.tab === id ? " on" : ""}" data-tab="${id}">${label}</button>`
@@ -493,6 +541,7 @@ function render() {
     home: renderHome,
     week: renderWeek,
     calendar: renderCalendar,
+    signup: renderSignup,
     history: renderHistory,
     fair: renderFair,
     cover: renderCover,
@@ -501,7 +550,17 @@ function render() {
     tactics: renderTactics,
   }[state.tab] || renderHome;
   view(page, d);
+  bindNightLinks(wrap);
   refreshWowhead();
+}
+
+function bindNightLinks(root) {
+  root.querySelectorAll("[data-share]").forEach((btn) => {
+    btn.onclick = () => shareNight(btn.getAttribute("data-share"), btn);
+  });
+  root.querySelectorAll("[data-open-night]").forEach((btn) => {
+    btn.onclick = () => openNight(btn.getAttribute("data-open-night"));
+  });
 }
 
 function nightLine(n, withDate) {
@@ -547,10 +606,16 @@ function renderHome(page, d) {
   page.appendChild(el(`<div class="grid two">
     <div class="card">
       <h2>本周开团</h2>
-      ${nights.length ? `<ul class="plain">${nights.map((n) => {
+      ${nights.length ? `<ul class="plain night-home">${nights.map((n) => {
         const sc = n.signupCounts || { in: 0, out: 0, maybe: 0 };
-        return `<li>${esc(nightLine(n, true))}
-          <span class="muted"> · 能来 ${sc.in} · 请假 ${sc.out} · 待定 ${sc.maybe}</span></li>`;
+        return `<li>
+          <div>${esc(nightLine(n, true))}
+            <span class="muted"> · 能来 ${sc.in} · 请假 ${sc.out} · 待定 ${sc.maybe}</span></div>
+          <div class="row" style="margin-top:6px">
+            <button type="button" data-open-night="${esc(n.id)}">打开报名</button>
+            <button type="button" class="ghost" data-share="${esc(n.id)}">分享</button>
+          </div>
+        </li>`;
       }).join("")}</ul>` : `<p class="muted">还没有开团夜。团长到「周历」标具体日期和时间。</p>`}
     </div>
     <div class="card">
@@ -891,7 +956,11 @@ function renderCalendar(page, d) {
       ${nights.length ? nights.map((n) => `<div class="night">
         <div><strong>${esc(n.title || n.time || "开团")}</strong> ${esc([n.time, n.instance].filter(Boolean).join(" · "))}</div>
         ${n.note ? `<div class="muted">${esc(n.note)}</div>` : ""}
-        ${lead ? `<div class="row" style="margin-top:8px"><button class="ghost" data-del-night="${esc(n.id)}">删除这场</button></div>` : ""}
+        <div class="row" style="margin-top:8px">
+          <button type="button" data-open-night="${esc(n.id)}">打开报名</button>
+          <button type="button" class="ghost" data-share="${esc(n.id)}">分享</button>
+          ${lead ? `<button class="ghost" data-del-night="${esc(n.id)}">删除这场</button>` : ""}
+        </div>
       </div>`).join("") : `<p class="muted">这天还没有开团。团长在下面加上时间和副本。</p>`}
       ${lead ? `<div class="night-form">
         <label>标题</label>
@@ -943,6 +1012,134 @@ function renderCalendar(page, d) {
   page.querySelectorAll("[data-del-night]").forEach((btn) => {
     btn.onclick = () => deleteNight(btn.getAttribute("data-del-night"), week);
   });
+}
+
+function bindSignupActions(page, week) {
+  page.querySelectorAll("[data-rsvp]").forEach((btn) => {
+    btn.onclick = () => {
+      const as = page.querySelector("#rsvpAs");
+      const who = as && as.value ? as.value : undefined;
+      const nightId = btn.getAttribute("data-night");
+      const nightWeek = btn.getAttribute("data-week") || week;
+      const noteEl = page.querySelector(`[data-rsvp-note="${nightId}"]`);
+      saveRsvp(nightWeek, btn.getAttribute("data-rsvp"), noteEl ? noteEl.value : "", who, nightId);
+    };
+  });
+}
+
+function renderSignup(page, d) {
+  const lead = state.role === "lead";
+  const night = findNightLocal(state.nightId);
+  if (!night) {
+    page.appendChild(el(`<div class="card">
+      <h2>找不到这场开团</h2>
+      <p class="muted">链接可能过期，或团长已经删了这场。</p>
+      <div class="row" style="margin-top:12px">
+        <button type="button" id="toCal">去周历</button>
+      </div>
+    </div>`));
+    page.querySelector("#toCal").onclick = () => gotoTab("calendar");
+    return;
+  }
+
+  const proxyNames = new Set();
+  (d.roster || []).forEach((n) => proxyNames.add(n));
+  Object.values(d.intents || {}).forEach((i) => i.char && proxyNames.add(i.char));
+  Object.values(night.signups || {}).forEach((r) => r.char && proxyNames.add(r.char));
+  const rosterOpts = [...proxyNames].map((n) =>
+    `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  const sc = night.signupCounts || { in: 0, out: 0, maybe: 0 };
+
+  page.appendChild(el(`<div class="card signup-hero">
+    <p class="muted">报名页 · 只看这一场</p>
+    <h2>${esc(night.title || night.time || "开团")}</h2>
+    <p>${esc(nightLine(night, true))}</p>
+    ${night.note ? `<p class="muted">${esc(night.note)}</p>` : ""}
+    <p class="muted">能来 ${sc.in} · 请假 ${sc.out} · 待定 ${sc.maybe}</p>
+    <div class="row" style="margin-top:12px">
+      <button type="button" data-share="${esc(night.id)}">复制报名链接</button>
+      <button type="button" class="ghost" id="toCal">周历</button>
+    </div>
+  </div>`));
+
+  page.appendChild(el(`<div class="card">
+    <h2>报名</h2>
+    ${lead ? `<label>代标队员</label>
+      <select id="rsvpAs"><option value="">自己</option>${rosterOpts}</select>` : ""}
+    ${nightSignupBlock(night, state.name)}
+  </div>`));
+
+  page.querySelector("#toCal").onclick = () => {
+    state.calDate = night.date || state.calDate;
+    gotoTab("calendar");
+  };
+  bindSignupActions(page, night.week || d.week);
+}
+
+async function shareNight(id, btn) {
+  if (!id) return;
+  const url = nightShareUrl(id);
+  const ok = await copyText(url);
+  if (btn) {
+    const old = btn.textContent;
+    btn.textContent = ok ? "已复制" : "复制失败";
+    setTimeout(() => { btn.textContent = old; }, 1600);
+  }
+  state.notice = ok ? "报名链接已复制，发给团员即可打开这一场" : `请手动复制：${url}`;
+  state.error = "";
+  const okEl = document.getElementById("ok");
+  const errEl = document.getElementById("err");
+  if (okEl) okEl.textContent = state.notice;
+  if (errEl) errEl.textContent = "";
+}
+
+async function openNight(id) {
+  if (!id) return;
+  state.nightId = id;
+  const next = `/n/${encodeURIComponent(id)}`;
+  if (location.pathname !== next) history.pushState({ night: id }, "", next);
+  await focusSharedNight();
+}
+
+async function focusSharedNight() {
+  const id = state.nightId || nightFromRoute();
+  if (!id) return false;
+  state.nightId = id;
+  state.tab = "signup";
+  sessionStorage.setItem("icra_tab", "signup");
+  try { await ensureSeason(); } catch (_) {}
+  let night = findNightLocal(id);
+  if (!night) {
+    try {
+      const out = await api("/api/night?id=" + encodeURIComponent(id));
+      night = out.night;
+      if (out.week && state.data && state.data.week !== out.week) {
+        await load(out.week, true);
+      }
+    } catch (e) {
+      state.error = e.message;
+      state.tab = "signup";
+      render();
+      return true;
+    }
+  }
+  if (night) {
+    if (night.date) {
+      state.calDate = night.date;
+      const p = ymdParts(night.date);
+      if (p.y && p.m) {
+        state.calYear = p.y;
+        state.calMonth = p.m;
+      }
+    }
+    const week = night.week || weekOfDate(night.date);
+    if (week && state.data && state.data.week !== week) {
+      await load(week, true);
+      return true;
+    }
+  }
+  render();
+  return true;
 }
 
 function rangeToggle(modeKey, current) {
@@ -1346,6 +1543,10 @@ async function afterWrite(data, notice) {
 }
 
 async function gotoTab(tab) {
+  if (tab !== "signup" && state.tab === "signup") {
+    state.nightId = "";
+    if (/^\/n\//.test(location.pathname)) history.pushState({}, "", "/");
+  }
   state.tab = tab;
   sessionStorage.setItem("icra_tab", tab);
   state.notice = "";
@@ -1445,16 +1646,21 @@ async function selectCalDate(date) {
   render();
 }
 
-async function load(week) {
+async function load(week, skipFocus) {
   try {
     state.data = await api("/api/state" + (week ? "?week=" + encodeURIComponent(week) : ""));
     state.week = state.data.week;
     state.error = "";
-    if (SEASON_TABS.has(state.tab) || state.season) {
+    if (SEASON_TABS.has(state.tab) || state.tab === "signup" || state.season) {
       try {
         const from = state.data.seasonStart || "2026-08-13";
         state.season = await api("/api/season?from=" + encodeURIComponent(from));
       } catch (_) {}
+    }
+    if (!skipFocus && (state.nightId || nightFromRoute())) {
+      state.nightId = state.nightId || nightFromRoute();
+      await focusSharedNight();
+      return;
     }
     render();
   } catch (e) {
@@ -1468,5 +1674,33 @@ async function load(week) {
   }
 }
 
+function bootRoute() {
+  const id = nightFromRoute();
+  if (id) {
+    state.nightId = id;
+    state.tab = "signup";
+    sessionStorage.setItem("icra_tab", "signup");
+  }
+}
+
+window.addEventListener("popstate", () => {
+  const id = nightFromRoute();
+  if (id) {
+    state.nightId = id;
+    if (state.token) focusSharedNight();
+    else renderLogin();
+    return;
+  }
+  if (state.tab === "signup") {
+    state.nightId = "";
+    state.tab = "calendar";
+    sessionStorage.setItem("icra_tab", "calendar");
+  }
+  if (state.data) render();
+  else if (state.token) load();
+  else renderLogin();
+});
+
+bootRoute();
 if (state.token) load();
 else renderLogin();
