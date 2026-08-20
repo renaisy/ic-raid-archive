@@ -20,6 +20,12 @@ const TABS = [
   ["tactics", "战术"],
 ];
 const SEASON_TABS = new Set(["calendar", "history", "fair", "cover"]);
+const MORE_TABS = new Set(["history", "fair", "cover", "notes", "rules", "tactics"]);
+const DOCK_TABS = [
+  ["home", "首页"],
+  ["week", "本周"],
+  ["calendar", "周历"],
+];
 const EPIC = "#a335ee";
 const QUALITY_HEX = {
   poor: "#9d9d9d",
@@ -317,12 +323,12 @@ function renderLogin() {
     <div class="login card">
       <div class="brand"><span class="brand-mark">ZOO</span><h1>海加尔 · ZOO</h1></div>
       <p class="muted lead">国服海加尔公会专属档案。角色可只填名字，默认补「-海加尔」。游戏内 <code>/icrc export</code> 或 <code>/icrl export</code> 复制后贴到本周页。</p>
-      <label>角色名</label>
-      <input id="name" placeholder="只填名字即可" value="${esc(shortName(state.name) === "?" ? "" : shortName(state.name))}" />
-      <label>邀请码</label>
-      <input id="code" type="password" placeholder="团长 ic-lead / 队员 ic-raid" />
+      <label for="name">角色名</label>
+      <input id="name" name="username" autocomplete="username" placeholder="只填名字即可" value="${esc(shortName(state.name) === "?" ? "" : shortName(state.name))}" />
+      <label for="code">邀请码</label>
+      <input id="code" name="code" type="password" autocomplete="current-password" placeholder="团长或队员邀请码" />
       <p class="err" id="err"></p>
-      <div class="row" style="margin-top:14px"><button id="go">进入公会</button></div>
+      <div class="row" style="margin-top:14px"><button id="go" class="btn-wide">进入公会</button></div>
     </div>
   </div>`);
   root.appendChild(box);
@@ -375,17 +381,55 @@ function slotDetail(intent) {
   }).join("")}</div>`;
 }
 
+function logout() {
+  localStorage.removeItem("icra_token");
+  localStorage.removeItem("icra_role");
+  localStorage.removeItem("icra_name");
+  state.token = state.role = "";
+  state.data = null;
+  state.season = null;
+  renderLogin();
+}
+
+function closeMore(wrap) {
+  const sheet = wrap.querySelector("#moreSheet");
+  if (sheet) sheet.hidden = true;
+}
+
 function bindShell(wrap) {
-  wrap.querySelector("#week").onchange = (e) => load(e.target.value);
-  wrap.querySelector("#out").onclick = () => {
-    localStorage.removeItem("icra_token");
-    state.token = state.role = "";
-    state.data = null;
-    state.season = null;
-    renderLogin();
-  };
+  wrap.querySelectorAll("select[data-week]").forEach((sel) => {
+    sel.onchange = (e) => load(e.target.value);
+  });
+  wrap.querySelectorAll("[data-logout]").forEach((btn) => {
+    btn.onclick = logout;
+  });
   wrap.querySelectorAll("[data-tab]").forEach((btn) => {
-    btn.onclick = () => gotoTab(btn.getAttribute("data-tab"));
+    btn.onclick = () => {
+      closeMore(wrap);
+      gotoTab(btn.getAttribute("data-tab"));
+    };
+  });
+  const moreBtn = wrap.querySelector("#moreOpen");
+  const sheet = wrap.querySelector("#moreSheet");
+  const backdrop = wrap.querySelector("#moreClose");
+  if (moreBtn && sheet) {
+    moreBtn.onclick = () => { sheet.hidden = false; };
+  }
+  if (backdrop) backdrop.onclick = () => closeMore(wrap);
+}
+
+function bindPaste(page) {
+  page.querySelectorAll("[data-paste]").forEach((btn) => {
+    btn.onclick = async () => {
+      const target = page.querySelector("#" + btn.getAttribute("data-paste"));
+      try {
+        const text = await navigator.clipboard.readText();
+        if (target && text) target.value = text;
+        else if (target) target.focus();
+      } catch (_) {
+        if (target) target.focus();
+      }
+    };
   });
 }
 
@@ -396,6 +440,12 @@ function shellHtml(d) {
   const tabs = TABS.map(([id, label]) =>
     `<button type="button"${state.tab === id ? " class=\"on\"" : ""} data-tab="${id}">${label}</button>`
   ).join("");
+  const dock = DOCK_TABS.map(([id, label]) =>
+    `<button type="button"${state.tab === id ? " class=\"on\"" : ""} data-tab="${id}">${label}</button>`
+  ).join("");
+  const moreItems = TABS.filter(([id]) => MORE_TABS.has(id)).map(([id, label]) =>
+    `<button type="button" class="ghost${state.tab === id ? " on" : ""}" data-tab="${id}">${label}</button>`
+  ).join("");
   return `<div class="wrap">
     <header class="bar">
       <div class="brand">
@@ -403,15 +453,30 @@ function shellHtml(d) {
         <h1>${esc((d.guild && d.guild.name) || "ZOO")}</h1>
         <span class="who">国服${esc((d.guild && d.guild.realm) || "海加尔")} · ${esc(state.name)} · ${lead ? "团长" : "队员"}</span>
       </div>
-      <div class="bar-right">
-        <select id="week">${weekOpts}</select>
-        <button class="ghost" id="out">退出</button>
+      <div class="bar-right desk-only">
+        <select data-week>${weekOpts}</select>
+        <button class="ghost" type="button" data-logout>退出</button>
       </div>
     </header>
-    <nav class="tabs">${tabs}</nav>
+    <div class="bar-tools phone-only">
+      <select data-week aria-label="选择周">${weekOpts}</select>
+    </div>
+    <nav class="tabs desk-only">${tabs}</nav>
     <p class="err" id="err">${esc(state.error)}</p>
     <p class="ok" id="ok">${esc(state.notice)}</p>
     <div id="page"></div>
+    <nav class="dock phone-only" aria-label="手机导航">
+      ${dock}
+      <button type="button" id="moreOpen"${MORE_TABS.has(state.tab) ? " class=\"on\"" : ""}>更多</button>
+    </nav>
+    <div class="sheet" id="moreSheet" hidden>
+      <div class="sheet-backdrop" id="moreClose"></div>
+      <div class="sheet-panel">
+        <h2>更多</h2>
+        <div class="sheet-grid">${moreItems}</div>
+        <div class="row" style="margin-top:14px"><button type="button" class="ghost btn-wide" data-logout>退出</button></div>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -490,7 +555,7 @@ function renderHome(page, d) {
     </div>
     <div class="card">
       <h2>进度</h2>
-      ${bosses.length ? `<table><tbody>${bosses.map((b) => `<tr>
+      ${bosses.length ? `<table class="stack-phone"><tbody>${bosses.map((b) => `<tr>
         <td>${esc(b.name)}</td>
         <td>${b.down ? tag("已击杀", "ok") : tag("未击杀", "warn")}</td>
       </tr>`).join("")}</tbody></table>` : `<p class="muted">还没有 Boss。团长可在「本周」一键填入${esc(raidInstanceName())} 8 王。</p>`}
@@ -555,14 +620,25 @@ function renderWeek(page, d) {
       <td class="muted">${i.at ? new Date(i.at * 1000).toLocaleString() : ""}</td>
     </tr>${open ? `<tr><td colspan="4">${slotDetail(i)}</td></tr>` : ""}`;
   }).join("") : `<tr><td colspan="4" class="muted">还没有意向。队员用 /icrc export 或下面手填。</td></tr>`;
+  const boardCards = intentList.length ? intentList.map((i) => {
+    const key = ckey(i.char);
+    const open = state.boardChar === key;
+    return `<button type="button" class="m-card board-row" data-board="${esc(key)}">
+      <div class="m-card-top"><strong>${esc(shortName(i.char))}</strong><span class="muted">${(i.slots || []).length}/16</span></div>
+      ${slotDots(i)}
+      <div class="muted" style="margin-top:6px">${i.at ? new Date(i.at * 1000).toLocaleString() : ""}</div>
+      ${open ? slotDetail(i) : ""}
+    </button>`;
+  }).join("") : `<p class="muted">还没有意向。队员用 /icrc export 或下面手填。</p>`;
 
   page.appendChild(el(`<div class="card">
     <h2>本周看板</h2>
     ${missing.length ? `<p class="err">未登记：${missing.map(esc).join("、")}</p>` : ""}
-    <table>
+    <div class="desk-only table-scroll"><table>
       <thead><tr><th>角色</th><th>部位</th><th>栏位</th><th>时间</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>
+    </table></div>
+    <div class="phone-only">${boardCards}</div>
   </div>`));
 
   const mine = d.intents[ckey(state.name)]
@@ -583,7 +659,10 @@ function renderWeek(page, d) {
       <details class="import">
         <summary>粘贴队员端 /icrc export</summary>
         <textarea id="intentPaste" placeholder="ICRC1:intent:{...}"></textarea>
-        <div class="row" style="margin-top:8px"><button id="importIntent">导入意向</button></div>
+        <div class="row" style="margin-top:8px">
+          <button type="button" class="ghost" data-paste="intentPaste">粘贴剪贴板</button>
+          <button id="importIntent">导入意向</button>
+        </div>
       </details>
       ${lead ? `<label>代登记角色</label><input id="asChar" placeholder="${esc(state.name)}" />` : ""}
       <div class="slot-grid" id="slotForm">${formRows}</div>
@@ -610,30 +689,41 @@ function renderWeek(page, d) {
   if (!(d.bosses || []).length) {
     bossBox.innerHTML = `<p class="muted">还没有 Boss。导入带 boss 字段的分配，或团长手加。</p>`;
   } else {
-    bossBox.innerHTML = `<table><tbody>${d.bosses.map((b, i) => `<tr>
+    bossBox.innerHTML = `<table class="stack-phone"><tbody>${d.bosses.map((b, i) => `<tr>
       <td>${esc(b.name)}</td>
       <td>${b.down ? tag("已击杀", "ok") : tag("未击杀", "warn")}</td>
       ${lead ? `<td><button class="ghost" data-toggle="${i}">切换</button></td>` : ""}
     </tr>`).join("")}</tbody></table>`;
   }
 
-  page.appendChild(el(`<div class="card">
-    <h2>本周分配</h2>
-    ${lead ? `<details class="import">
-      <summary>粘贴团长端 /icrl export</summary>
-      <textarea id="lootPaste" placeholder="ICRC1:loot:{...}"></textarea>
-      <div class="row" style="margin-top:8px"><button id="importLoot">导入分配</button></div>
-    </details>` : `<p class="muted">由团长导入。同一 uid 再导入会更新，不会重复记账。</p>`}
-    <table>
-      <thead><tr><th>物品</th><th>获奖</th><th>Boss</th><th>交付</th><th>去向</th></tr></thead>
-      <tbody>${awards.length ? awards.map((a) => `<tr>
+  const awardRows = awards.length ? awards.map((a) => `<tr>
         <td>${itemChip(a.itemId, a.itemLink)}</td>
         <td>${esc(shortName(a.winner))}</td>
         <td class="muted">${esc(a.boss || "—")}</td>
         <td>${a.traded ? tag("已交付", "ok") : tag("未交付", "warn")}</td>
         <td>${lead ? awardMarkSelect(a) : markTag(a.mark)}</td>
-      </tr>`).join("") : `<tr><td colspan="5" class="muted">本周还没有分配记录。</td></tr>`}</tbody>
-    </table>
+      </tr>`).join("") : `<tr><td colspan="5" class="muted">本周还没有分配记录。</td></tr>`;
+  const awardCards = awards.length ? awards.map((a) => `<div class="m-card">
+      <div class="m-card-top">${itemChip(a.itemId, a.itemLink)} ${esc(shortName(a.winner))}</div>
+      <div class="muted">${esc(a.boss || "—")} · ${a.traded ? "已交付" : "未交付"}</div>
+      <div style="margin-top:8px">${lead ? awardMarkSelect(a) : markTag(a.mark)}</div>
+    </div>`).join("") : `<p class="muted">本周还没有分配记录。</p>`;
+
+  page.appendChild(el(`<div class="card">
+    <h2>本周分配</h2>
+    ${lead ? `<details class="import">
+      <summary>粘贴团长端 /icrl export</summary>
+      <textarea id="lootPaste" placeholder="ICRC1:loot:{...}"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button type="button" class="ghost" data-paste="lootPaste">粘贴剪贴板</button>
+        <button id="importLoot">导入分配</button>
+      </div>
+    </details>` : `<p class="muted">由团长导入。同一 uid 再导入会更新，不会重复记账。</p>`}
+    <div class="desk-only table-scroll"><table>
+      <thead><tr><th>物品</th><th>获奖</th><th>Boss</th><th>交付</th><th>去向</th></tr></thead>
+      <tbody>${awardRows}</tbody>
+    </table></div>
+    <div class="phone-only">${awardCards}</div>
   </div>`));
 
   bindWeekActions(page, d);
@@ -641,6 +731,7 @@ function renderWeek(page, d) {
 
 function bindWeekActions(page, d) {
   const lead = state.role === "lead";
+  bindPaste(page);
   const importIntent = page.querySelector("#importIntent");
   if (importIntent) importIntent.onclick = () => importText(page.querySelector("#intentPaste").value);
   const lootBtn = page.querySelector("#importLoot");
@@ -733,7 +824,7 @@ function nightSignupBlock(n, myName) {
     <p class="muted">能来 ${sc.in} · 请假 ${sc.out} · 待定 ${sc.maybe}。你现在：${
       mine ? tag(RSVP_LABEL[mine.status], mine.status === "in" ? "ok" : mine.status === "out" ? "warn" : "") : tag("未报名")
     }</p>
-    <div class="row" style="margin:8px 0 12px">
+    <div class="row rsvp-seg" style="margin:8px 0 12px">
       <button type="button"${mine && mine.status === "in" ? "" : " class=\"ghost\""} data-rsvp="in" data-night="${esc(n.id)}" data-week="${esc(n.week || "")}">能来</button>
       <button type="button"${mine && mine.status === "out" ? "" : " class=\"ghost\""} data-rsvp="out" data-night="${esc(n.id)}" data-week="${esc(n.week || "")}">请假</button>
       <button type="button"${mine && mine.status === "maybe" ? "" : " class=\"ghost\""} data-rsvp="maybe" data-night="${esc(n.id)}" data-week="${esc(n.week || "")}">待定</button>
@@ -905,10 +996,10 @@ function renderHistory(page, d) {
       <button type="button"${state.histGroup === "char" ? " class=\"on\"" : ""} data-hist-group="char">按人</button>
       <button type="button"${state.histGroup === "boss" ? " class=\"on\"" : ""} data-hist-group="boss">按 Boss</button>
     </div>
-    <table>
+    <div class="table-scroll"><table class="stack-phone">
       <thead><tr><th>物品</th><th>获奖</th><th>Boss</th><th>去向</th><th>周</th></tr></thead>
       ${body}
-    </table>
+    </table></div>
   </div>`));
   if (detail) page.appendChild(el(detail));
 
@@ -929,11 +1020,11 @@ function renderHistory(page, d) {
 
 function histRow(a) {
   return `<tr>
-    <td>${itemChip(a.itemId, a.itemLink)}</td>
-    <td><button type="button" class="link" data-hist-char="${esc(ckey(a.winner))}">${esc(shortName(a.winner))}</button></td>
-    <td class="muted">${esc(a.boss || "—")}</td>
-    <td>${markTag(a.mark)}</td>
-    <td class="muted">${esc(a.week || "")}</td>
+    <td data-th="物品">${itemChip(a.itemId, a.itemLink)}</td>
+    <td data-th="获奖"><button type="button" class="link" data-hist-char="${esc(ckey(a.winner))}">${esc(shortName(a.winner))}</button></td>
+    <td class="muted" data-th="Boss">${esc(a.boss || "—")}</td>
+    <td data-th="去向">${markTag(a.mark)}</td>
+    <td class="muted" data-th="周">${esc(a.week || "")}</td>
   </tr>`;
 }
 
@@ -964,10 +1055,10 @@ function renderFair(page, d) {
     <h2>公平计数</h2>
     <p class="muted">只统计标记为「获奖者」的条目。银行和分解不计入件数。这不是自动裁决，只是数字。</p>
     ${rangeToggle("range", state.rangeMode)}
-    <table>
+    <table class="stack-phone">
       <thead><tr><th>角色</th><th>件数</th><th>已交付</th></tr></thead>
       <tbody>${rows.length ? rows.map((r) => `<tr>
-        <td>${esc(r.char)}</td><td>${r.n}</td><td>${r.traded}</td>
+        <td>${esc(r.char)}</td><td>${r.n} 件</td><td>已交付 ${r.traded}</td>
       </tr>`).join("") : `<tr><td colspan="3" class="muted">这段时间没有按人可计的分配。</td></tr>`}</tbody>
     </table>
   </div>`));
@@ -1031,7 +1122,7 @@ function renderCover(page, d) {
 
   page.appendChild(el(`<div class="card">
     <h2>已登记但不足 16 栏</h2>
-    ${shortSlots.length ? `<table>
+    ${shortSlots.length ? `<table class="stack-phone">
       <thead><tr><th>角色</th><th>部位</th><th>已填</th><th>缺栏</th></tr></thead>
       <tbody>${shortSlots.map((x) => `<tr>
         <td>${esc(x.char)}</td>
@@ -1058,7 +1149,7 @@ function renderNotes(page, d) {
   page.appendChild(el(`<div class="card">
     <h2>下次优先</h2>
     <p class="muted">角色 + 物品 ID + 一句话。不当自动分配规则。</p>
-    ${prios.length ? `<table>
+    ${prios.length ? `<table class="stack-phone">
       <thead><tr><th>角色</th><th>物品</th><th>原因</th>${lead ? "<th></th>" : ""}</tr></thead>
       <tbody>${prios.map((p, i) => `<tr>
         <td>${esc(p.char)}</td>
@@ -1078,7 +1169,7 @@ function renderNotes(page, d) {
   page.appendChild(el(`<div class="card">
     <h2>分配去向</h2>
     <p class="muted">团长可标公会银行 / 分解。导入时默认「获奖者」。记录页跟着显示。</p>
-    <table>
+    <table class="stack-phone">
       <thead><tr><th>物品</th><th>获奖</th><th>去向</th></tr></thead>
       <tbody>${awards.length ? awards.map((a) => `<tr>
         <td>${itemChip(a.itemId, a.itemLink)}</td>

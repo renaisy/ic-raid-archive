@@ -11,9 +11,10 @@ services:
       RAIDER_CODE: "${RAIDER_CODE:-}"
       SEASON_START: "${SEASON_START:-}"
     ports:
-      - "${PORT:-8765}:8765"
+      - "127.0.0.1:${PORT:-8765}:8765"
     volumes:
       - archive-data:/app/data
+      - ./public:/app/public:ro
 
 volumes:
   archive-data:
