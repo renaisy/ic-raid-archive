@@ -6,14 +6,14 @@
     "patch": "12.1"
   },
   "bosses": [
-    { "id": "nekzali", "nameZh": "缚魂者奈克扎利", "nameEn": "Nek'zali the Soulcoiler" },
+    { "id": "nekzali", "nameZh": "缚魂者奈克扎利", "nameEn": "Nek'zali the Soulcoiler", "aliases": ["Nekzali"] },
     { "id": "sentinels", "nameZh": "葬入哨卫", "nameEn": "Entombed Sentinels" },
     { "id": "explorers", "nameZh": "迷失探险者", "nameEn": "The Lost Explorers" },
     { "id": "vashnik", "nameZh": "恶毒的瓦什尼克", "nameEn": "Vashnik the Malignant" },
     { "id": "sszorak", "nameZh": "斯佐拉克", "nameEn": "Sszorak" },
     { "id": "twinfangs", "nameZh": "双牙", "nameEn": "The Twin Fangs" },
-    { "id": "altar", "nameZh": "盘绕祭坛", "nameEn": "The Coiled Altar" },
-    { "id": "ulatek", "nameZh": "乌拉泰克", "nameEn": "Ula'tek" }
+    { "id": "altar", "nameZh": "盘绕祭坛", "nameEn": "The Coiled Altar", "aliases": ["盘卷祭坛", "Coiled Altar"] },
+    { "id": "ulatek", "nameZh": "乌拉泰克", "nameEn": "Ula'tek", "aliases": ["乌拉特克", "Ulatek"] }
   ],
   "items": {
     "271874": {

@@ -465,6 +465,8 @@ const JOURNAL_DIFFS = [
   { id: "heroic", name: "英雄" },
   { id: "mythic", name: "史诗" },
 ];
+const PROGRESS_DIFFS = JOURNAL_DIFFS;
+const DEFAULT_WCL = "https://cn.warcraftlogs.com/guild/reports-list/588930";
 const SCENE_FILL = {
   boss: "#ff7a18",
   tank: "#6cb4ff",
@@ -894,21 +896,46 @@ function positionCard(p) {
   </div>`;
 }
 
-function mergeCatalogBosses(current) {
-  const cur = (current || []).map((b) => ({ name: b.name, down: !!b.down }));
-  const names = new Set(cur.map((b) => b.name));
-  const seen = new Set();
-  for (const b of raidBosses()) {
-    if (names.has(b.nameZh) || names.has(b.nameEn) || names.has(b.id)) seen.add(b.id);
+function guildWclUrl() {
+  const g = state.data && state.data.guild;
+  return (g && g.wclUrl) || DEFAULT_WCL;
+}
+
+function bossWcl(b, diff) {
+  return (b && b.wcl && b.wcl[diff]) || "";
+}
+
+function wclAnchor(url, label) {
+  if (!url) return "";
+  return `<a class="wcl-link" href="${esc(url)}" target="_blank" rel="noreferrer">${esc(label || "WCL")}</a>`;
+}
+
+function progressCell(b, diff, lead) {
+  const down = !!(b && b[diff]);
+  const url = bossWcl(b, diff);
+  const status = down ? tag("已击杀", "ok") : tag("未击杀", "warn");
+  const toggle = lead
+    ? `<button type="button" class="ghost progress-toggle" data-boss="${esc(b.id)}" data-diff="${esc(diff)}">${status}</button>`
+    : status;
+  const link = url ? wclAnchor(url) : "";
+  const assoc = lead
+    ? `<button type="button" class="ghost" data-wcl-boss="${esc(b.id)}" data-wcl-diff="${esc(diff)}">${url ? "改链接" : "关联"}</button>`
+    : "";
+  return `${toggle}${link}${assoc}`;
+}
+
+function progressTable(bosses, lead) {
+  const list = bosses || [];
+  if (!list.length) {
+    return `<p class="muted">还没有 Boss。团长可在「本周」按图鉴对齐 ${esc(raidInstanceName())} 8 王。</p>`;
   }
-  for (const b of raidBosses()) {
-    if (seen.has(b.id)) continue;
-    const name = b.nameZh || b.nameEn;
-    if (!name || names.has(name)) continue;
-    cur.push({ name, down: false });
-    names.add(name);
-  }
-  return cur;
+  return `<table class="stack-phone progress-table">
+    <thead><tr><th>Boss</th>${PROGRESS_DIFFS.map((d) => `<th>${esc(d.name)}</th>`).join("")}</tr></thead>
+    <tbody>${list.map((b) => `<tr>
+      <td>${esc(b.name)}</td>
+      ${PROGRESS_DIFFS.map((d) => `<td data-th="${esc(d.name)}" class="progress-cell">${progressCell(b, d.id, lead)}</td>`).join("")}
+    </tr>`).join("")}</tbody>
+  </table>`;
 }
 
 function refreshWowhead() {
@@ -992,7 +1019,7 @@ function renderLogin() {
       <div class="brand"><span class="brand-mark">ZOO</span><h1>海加尔 · ZOO</h1></div>
       <p class="muted lead">${state.nightId
         ? "登录后将打开这场开团的报名页，可查看名单并报名。"
-        : "国服海加尔公会专属档案。角色可只填名字，默认补「-海加尔」。游戏内 <code>/icrc export</code> 或 <code>/icrl export</code> 复制后贴到本周页。"}</p>
+        : "国服海加尔公会专属档案。角色可只填名字，默认补「-海加尔」。游戏内 <code>/icrc export</code>、<code>/icrl export</code> 或 JicksLoot <code>/jl export</code> 复制后贴到本周页。"}</p>
       <label for="name">角色名</label>
       <input id="name" name="username" autocomplete="username" placeholder="只填名字即可" value="${esc(shortName(state.name) === "?" ? "" : shortName(state.name))}" />
       <label for="code">邀请码</label>
@@ -1223,6 +1250,14 @@ function dateWithWeekday(ymd) {
   return w ? `${ymd} ${w}` : String(ymd || "");
 }
 
+function nightIsPast(n) {
+  return !!(n && n.date && n.date < todayYmd());
+}
+
+function upcomingNights(nights) {
+  return (nights || []).filter((n) => !nightIsPast(n));
+}
+
 function nightLine(n, withDate) {
   const parts = [];
   if (withDate && n.date) parts.push(dateWithWeekday(n.date));
@@ -1258,7 +1293,10 @@ function rememberNightForm(night) {
 function nightSummary(d) {
   const nights = d.nights || [];
   if (!nights.length) return "未标";
-  return nights.map((n) => nightLine(n, true)).join("；");
+  const live = upcomingNights(nights);
+  const past = nights.length - live.length;
+  const text = live.length ? live.map((n) => nightLine(n, true)).join("；") : "本周开团已结束";
+  return past && live.length ? `${text}；另有 ${past} 场已结束` : text;
 }
 
 function memoExcerpt(text) {
@@ -1272,6 +1310,8 @@ function renderHome(page, d) {
   const g = d.guild || {};
   const missing = d.missing || [];
   const nights = d.nights || [];
+  const liveNights = upcomingNights(nights);
+  const pastNights = nights.length - liveNights.length;
   const bosses = d.bosses || [];
   const excerpt = memoExcerpt(d.memo);
 
@@ -1283,13 +1323,14 @@ function renderHome(page, d) {
       <button type="button" class="ghost" data-jump="notes">指挥备忘</button>
       <button type="button" class="ghost" data-jump="rules">团规</button>
       <button type="button" class="ghost" data-jump="tactics">战术</button>
+      <a class="ghost" href="${esc(guildWclUrl())}" target="_blank" rel="noreferrer">WCL 报告</a>
     </div>
   </div>`));
 
   page.appendChild(el(`<div class="grid two">
     <div class="card">
       <h2>本周开团</h2>
-      ${nights.length ? `<ul class="plain night-home">${nights.map((n) => {
+      ${liveNights.length ? `<ul class="plain night-home">${liveNights.map((n) => {
         const sc = n.signupCounts || { in: 0, out: 0, maybe: 0 };
         return `<li>
           <div>${esc(nightLine(n, true))}
@@ -1299,14 +1340,14 @@ function renderHome(page, d) {
             <button type="button" class="ghost" data-share="${esc(n.id)}">分享</button>
           </div>
         </li>`;
-      }).join("")}</ul>` : `<p class="muted">还没有开团夜。团长到「周历」标具体日期和时间。</p>`}
+      }).join("")}</ul>${pastNights ? `<p class="muted">已结束 ${pastNights} 场，已从首页藏起。周历里仍可点那天查看。</p>` : ""}`
+        : (nights.length
+          ? `<p class="muted">本周开团都已结束。周历里仍可点过期那天查看报名。</p>`
+          : `<p class="muted">还没有开团夜。团长到「周历」标具体日期和时间。</p>`)}
     </div>
     <div class="card">
-      <h2>进度</h2>
-      ${bosses.length ? `<table class="stack-phone"><tbody>${bosses.map((b) => `<tr>
-        <td>${esc(b.name)}</td>
-        <td>${b.down ? tag("已击杀", "ok") : tag("未击杀", "warn")}</td>
-      </tr>`).join("")}</tbody></table>` : `<p class="muted">还没有 Boss。团长可在「本周」一键填入${esc(raidInstanceName())} 8 王。</p>`}
+      <h2>进度 ${wclAnchor(guildWclUrl(), "WCL 报告")}</h2>
+      ${progressTable(bosses, false)}
     </div>
   </div>`));
 
@@ -1427,15 +1468,10 @@ function renderWeek(page, d) {
       <div class="row" style="margin-top:12px"><button id="saveIntent">保存手填意向</button></div>
     </div>
     <div class="card">
-      <h2>进度</h2>
-      <p class="muted">只记团本王。导入分配会回填；团长也可手改或一键填入。</p>
+      <h2>进度 ${wclAnchor(guildWclUrl(), "WCL 报告")}</h2>
+      <p class="muted">按普通 / 英雄 / 史诗分列。导入分配会勾对应难度；团长可手点切换，并给每场击杀关联一条 WCL 记录。</p>
       <div id="bosses"></div>
-      ${lead ? `<label>新增 Boss</label><div class="row">
-        <input id="newBoss" list="raidBossList" placeholder="Boss 名" />
-        <datalist id="raidBossList">${raidBosses().map((b) => `<option value="${esc(b.nameZh || b.nameEn)}"></option>`).join("")}</datalist>
-        <button class="ghost" id="addBoss">加上</button>
-      </div>
-      <div class="row" style="margin-top:8px"><button class="ghost" id="fillRaidBosses">填入${esc(raidInstanceName())} 8 王</button></div>` : ""}
+      ${lead ? `<div class="row" style="margin-top:8px"><button class="ghost" id="fillRaidBosses">按图鉴对齐${esc(raidInstanceName())} 8 王</button></div>` : ""}
       ${lead ? `<details class="import"><summary>公会名册（跨周沿用，可只写名字）</summary>
         <textarea id="roster">${esc((d.roster || []).join("\n"))}</textarea>
         <div class="row" style="margin-top:8px"><button class="ghost" id="saveRoster">保存名单</button></div>
@@ -1444,15 +1480,7 @@ function renderWeek(page, d) {
   </div>`));
 
   const bossBox = page.querySelector("#bosses");
-  if (!(d.bosses || []).length) {
-    bossBox.innerHTML = `<p class="muted">还没有 Boss。导入带 boss 字段的分配，或团长手加。</p>`;
-  } else {
-    bossBox.innerHTML = `<table class="stack-phone"><tbody>${d.bosses.map((b, i) => `<tr>
-      <td>${esc(b.name)}</td>
-      <td>${b.down ? tag("已击杀", "ok") : tag("未击杀", "warn")}</td>
-      ${lead ? `<td><button class="ghost" data-toggle="${i}">切换</button></td>` : ""}
-    </tr>`).join("")}</tbody></table>`;
-  }
+  bossBox.innerHTML = progressTable(d.bosses || [], lead);
 
   const awardRows = awards.length ? awards.map((a) => `<tr>
         <td>${itemChip(a.itemId, a.itemLink)}</td>
@@ -1470,13 +1498,22 @@ function renderWeek(page, d) {
   page.appendChild(el(`<div class="card">
     <h2>本周分配</h2>
     ${lead ? `<details class="import">
-      <summary>粘贴团长端 /icrl export</summary>
+      <summary>粘贴 /icrl export 或 /jl export</summary>
       <textarea id="lootPaste" placeholder="ICRC1:loot:{...}"></textarea>
+      <p class="muted" style="margin:8px 0 0">团长点名用 <code>/icrl export</code>。游戏 roll、系统判胜用 JicksLoot <code>/jl export</code>。只导入可团队交易的拾取绑定；装绑和战团绑定（含使用前战团绑定）会跳过。同一物品同一人再导会合为一条。</p>
       <div class="row" style="margin-top:8px">
         <button type="button" class="ghost" data-paste="lootPaste">粘贴剪贴板</button>
+        <label class="loot-diff">导入记到
+          <select id="lootDiff">
+            <option value="heroic">英雄</option>
+            <option value="normal">普通</option>
+            <option value="mythic">史诗</option>
+          </select>
+        </label>
         <button id="importLoot">导入分配</button>
+        <button type="button" class="ghost" id="clearAwards">清空本周分配</button>
       </div>
-    </details>` : `<p class="muted">由团长导入。同一 uid 再导入会更新，不会重复记账。</p>`}
+    </details>` : `<p class="muted">由团长导入。同一物品同一人只会记一条；只保留可团队交易的拾取绑定。</p>`}
     <div class="desk-only table-scroll"><table>
       <thead><tr><th>物品</th><th>获奖</th><th>Boss</th><th>交付</th><th>去向</th></tr></thead>
       <tbody>${awardRows}</tbody>
@@ -1493,7 +1530,14 @@ function bindWeekActions(page, d) {
   const importIntent = page.querySelector("#importIntent");
   if (importIntent) importIntent.onclick = () => importText(page.querySelector("#intentPaste").value);
   const lootBtn = page.querySelector("#importLoot");
-  if (lootBtn) lootBtn.onclick = () => importText(page.querySelector("#lootPaste").value);
+  if (lootBtn) {
+    lootBtn.onclick = () => {
+      const diff = (page.querySelector("#lootDiff") || {}).value || "heroic";
+      importText(page.querySelector("#lootPaste").value, { diff });
+    };
+  }
+  const clearBtn = page.querySelector("#clearAwards");
+  if (clearBtn) clearBtn.onclick = () => clearWeekAwards(d.week);
 
   page.querySelectorAll("[data-board]").forEach((row) => {
     row.onclick = (e) => {
@@ -1579,25 +1623,35 @@ function bindWeekActions(page, d) {
     };
   }
 
-  page.querySelectorAll("[data-toggle]").forEach((btn) => {
+  page.querySelectorAll("[data-boss][data-diff]").forEach((btn) => {
     btn.onclick = async () => {
-      const i = Number(btn.getAttribute("data-toggle"));
-      const bosses = d.bosses.map((b, j) => ({ ...b, down: j === i ? !b.down : b.down }));
+      const id = btn.getAttribute("data-boss");
+      const diff = btn.getAttribute("data-diff");
+      const bosses = (d.bosses || []).map((b) => (
+        b.id === id ? { ...b, [diff]: !b[diff] } : b
+      ));
       await saveBosses(bosses);
     };
   });
-  const addBoss = page.querySelector("#addBoss");
-  if (addBoss) {
-    addBoss.onclick = async () => {
-      const name = page.querySelector("#newBoss").value.trim();
-      if (!name) return;
-      await saveBosses([...(d.bosses || []), { name, down: false }]);
+  page.querySelectorAll("[data-wcl-boss]").forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute("data-wcl-boss");
+      const diff = btn.getAttribute("data-wcl-diff");
+      const row = (d.bosses || []).find((b) => b.id === id);
+      const cur = bossWcl(row, diff);
+      const next = prompt("粘贴该难度这场的 WCL 记录链接，留空则取消关联。", cur);
+      if (next == null) return;
+      const bosses = (d.bosses || []).map((b) => {
+        if (b.id !== id) return b;
+        return { ...b, wcl: { ...(b.wcl || {}), [diff]: next.trim() } };
+      });
+      await saveBosses(bosses);
     };
-  }
+  });
   const fillRaid = page.querySelector("#fillRaidBosses");
   if (fillRaid) {
     fillRaid.onclick = async () => {
-      await saveBosses(mergeCatalogBosses(d.bosses));
+      await saveBosses(d.bosses || []);
     };
   }
 
@@ -1748,8 +1802,9 @@ function renderCalendar(page, d) {
     <div class="card">
       <h2>${esc(date)} · 开团</h2>
       <p class="muted">所在周 ${esc(week)}</p>
-      ${nights.length ? nights.map((n) => `<div class="night">
-        <div><strong>${esc(n.title || n.time || "开团")}</strong> ${esc([n.time, n.instance].filter(Boolean).join(" · "))}</div>
+      ${nights.length ? nights.map((n) => `<div class="night${nightIsPast(n) ? " past" : ""}">
+        <div><strong>${esc(n.title || n.time || "开团")}</strong> ${esc([n.time, n.instance].filter(Boolean).join(" · "))}
+          ${nightIsPast(n) ? tag("已结束", "") : ""}</div>
         ${n.note ? `<div class="muted">${esc(n.note)}</div>` : ""}
         <div class="row" style="margin-top:8px">
           <button type="button" data-open-night="${esc(n.id)}">打开报名</button>
@@ -2588,13 +2643,31 @@ async function saveBosses(bosses) {
   } catch (e) { fail(e); }
 }
 
-async function importText(text) {
+async function importText(text, extra) {
   try {
     const out = await api("/api/import", {
       method: "POST",
-      body: JSON.stringify({ week: state.data.week, text }),
+      body: JSON.stringify({ week: state.data.week, text, ...(extra || {}) }),
     });
-    await afterWrite(out, out.imported != null ? `已导入 ${out.imported} 条分配（按 uid 去重）` : "意向已导入");
+    let notice = "意向已导入";
+    if (out.imported != null) {
+      const bits = [`已导入 ${out.imported} 条`];
+      if (out.merged) bits.push(`合并 ${out.merged}`);
+      if (out.skippedBind) bits.push(`跳过绑定 ${out.skippedBind}`);
+      notice = bits.join("，");
+    }
+    await afterWrite(out, notice);
+  } catch (e) { fail(e); }
+}
+
+async function clearWeekAwards(week) {
+  if (!confirm("清空本周全部分配记录？意向、名册和开团不会动。")) return;
+  try {
+    const out = await api("/api/awards-clear", {
+      method: "POST",
+      body: JSON.stringify({ week }),
+    });
+    await afterWrite(out, out.cleared != null ? `已清空 ${out.cleared} 条分配` : "本周分配已清空");
   } catch (e) { fail(e); }
 }
 

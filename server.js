@@ -105,6 +105,148 @@ function charKey(name) {
   return String(name || "").toLowerCase().replace(/[\s'-]/g, "");
 }
 
+function shortCharKey(name) {
+  const raw = String(name || "").trim();
+  const short = raw.includes("-") ? raw.split("-")[0] : raw;
+  return charKey(short);
+}
+
+function awardDedupeKey(itemId, winner) {
+  return `${Number(itemId)}|${shortCharKey(winner)}`;
+}
+
+const SKIP_BIND = new Set(["boe", "warband", "wue"]);
+const WUE_BONUS = new Set([10390, 10878, 11109, 11964, 12053]);
+
+function bonusIdsFromLink(link) {
+  const m = String(link || "").match(/item:([^|\]]+)/i);
+  if (!m) return [];
+  const parts = m[1].split(":");
+  const n = Number(parts[12]);
+  if (!n || n < 1 || n > 32) return [];
+  const ids = [];
+  for (let i = 0; i < n; i += 1) {
+    const id = Number(parts[13 + i]);
+    if (id) ids.push(id);
+  }
+  return ids;
+}
+
+function inferBind(a) {
+  const b = String((a && (a.bind || a.bindType)) || "").toLowerCase();
+  if (SKIP_BIND.has(b) || b === "bop") return b;
+  if (bonusIdsFromLink(a && a.itemLink).some((id) => WUE_BONUS.has(id))) return "wue";
+  return "";
+}
+
+const BOSS_DIFFS = ["normal", "heroic", "mythic"];
+const DEFAULT_WCL = "https://cn.warcraftlogs.com/guild/reports-list/588930";
+const EXTRA_BOSS_ALIASES = {
+  盘卷祭坛: "altar",
+  thecoiledaltar: "altar",
+  coiledaltar: "altar",
+  乌拉特克: "ulatek",
+  ulatek: "ulatek",
+};
+
+function foldBossName(name) {
+  return String(name || "").trim().toLowerCase().replace(/[\s'`·・\-']/g, "");
+}
+
+function raidBossCatalog(loot) {
+  return ((loot || loadLoot()).bosses || []).filter((b) => b && b.id);
+}
+
+function resolveBoss(name, loot) {
+  const raw = String(name || "").trim();
+  if (!raw || raw === "Boss loot") return null;
+  const folded = foldBossName(raw);
+  const extra = EXTRA_BOSS_ALIASES[raw] || EXTRA_BOSS_ALIASES[folded];
+  const catalog = raidBossCatalog(loot);
+  const byId = extra && catalog.find((b) => b.id === extra);
+  if (byId) return { id: byId.id, name: byId.nameZh || byId.nameEn || byId.id };
+  for (const b of catalog) {
+    const aliases = [b.id, b.nameZh, b.nameEn, ...(b.aliases || [])];
+    if (aliases.some((x) => String(x) === raw || foldBossName(x) === folded)) {
+      return { id: b.id, name: b.nameZh || b.nameEn || b.id };
+    }
+  }
+  return null;
+}
+
+function inferBossDiff(raw) {
+  const s = String(raw || "").trim().toLowerCase();
+  if (s === "normal" || s === "n" || s === "14") return "normal";
+  if (s === "heroic" || s === "h" || s === "15") return "heroic";
+  if (s === "mythic" || s === "m" || s === "16") return "mythic";
+  const n = Number(raw);
+  if (n === 14) return "normal";
+  if (n === 15) return "heroic";
+  if (n === 16) return "mythic";
+  return "";
+}
+
+function sanitizeWclUrl(url) {
+  const s = String(url || "").trim().slice(0, 300);
+  if (!s) return "";
+  try {
+    const u = new URL(s);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return "";
+    const host = u.hostname.toLowerCase();
+    if (host !== "warcraftlogs.com" && !host.endsWith(".warcraftlogs.com")) return "";
+    return s;
+  } catch (_) {
+    return "";
+  }
+}
+
+function emptyBossProgress(cat) {
+  return {
+    id: cat.id,
+    name: cat.nameZh || cat.nameEn || cat.id,
+    normal: false,
+    heroic: false,
+    mythic: false,
+    wcl: { normal: "", heroic: "", mythic: "" },
+  };
+}
+
+function normalizeBossList(list, loot) {
+  const catalog = raidBossCatalog(loot);
+  const rows = catalog.map((c) => emptyBossProgress(c));
+  const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
+  for (const raw of list || []) {
+    if (!raw) continue;
+    const resolved = resolveBoss(raw.id || raw.name, loot);
+    if (!resolved || !byId[resolved.id]) continue;
+    const row = byId[resolved.id];
+    const hasDiff = BOSS_DIFFS.some((d) => raw[d] != null);
+    if (hasDiff) {
+      for (const d of BOSS_DIFFS) {
+        if (raw[d] != null) row[d] = !!raw[d];
+      }
+    } else if (raw.down) {
+      row.normal = true;
+    }
+    const wcl = raw.wcl && typeof raw.wcl === "object" ? raw.wcl : {};
+    for (const d of BOSS_DIFFS) {
+      if (wcl[d] != null) row.wcl[d] = sanitizeWclUrl(wcl[d]);
+    }
+  }
+  return rows;
+}
+
+function pickBoss(next, prev, loot) {
+  const n = String(next || "").trim();
+  const p = String((prev && prev.boss) || "").trim();
+  const raw = n && n !== "Boss loot" ? n : p;
+  const resolved = resolveBoss(raw, loot);
+  if (resolved) return resolved.name;
+  if (n && n !== "Boss loot") return n.slice(0, 64);
+  if (p && p !== "Boss loot") return p.slice(0, 64);
+  return "";
+}
+
 function nid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
@@ -128,6 +270,7 @@ function loadStore() {
   store.config.guildName = store.config.guildName || "ZOO";
   store.config.realm = store.config.realm || "海加尔";
   store.config.region = store.config.region || "CN";
+  store.config.wclUrl = store.config.wclUrl || DEFAULT_WCL;
   store.sessions = store.sessions || {};
   store.weeks = store.weeks || {};
   store.guild = store.guild || {};
@@ -421,6 +564,7 @@ function guildPublic(store) {
     name: store.config.guildName || "ZOO",
     realm: store.config.realm || "海加尔",
     region: store.config.region || "CN",
+    wclUrl: store.config.wclUrl || DEFAULT_WCL,
     roster: (store.guild.roster || []).slice(),
     rules: store.guild.rules || "",
     tactics: (store.guild.tactics || []).map((t) => ({
@@ -506,14 +650,8 @@ function parseItemLink(link) {
 }
 
 function matchBossId(loot, name) {
-  const n = String(name || "").trim().toLowerCase();
-  if (!n) return "";
-  for (const b of loot.bosses || []) {
-    if (b.id === name) return b.id;
-    if (String(b.nameEn || "").toLowerCase() === n) return b.id;
-    if (String(b.nameZh || "") === name) return b.id;
-  }
-  return "";
+  const resolved = resolveBoss(name, loot);
+  return resolved ? resolved.id : "";
 }
 
 function learnItem(loot, itemId, link, boss) {
@@ -548,7 +686,7 @@ function weekBucket(store, week) {
   const w = store.weeks[week];
   w.intents = w.intents || {};
   w.awards = w.awards || {};
-  w.bosses = w.bosses || [];
+  w.bosses = normalizeBossList(w.bosses || []);
   w.roster = w.roster || [];
   w.nights = w.nights || [];
   w.rsvp = w.rsvp || {};
@@ -656,35 +794,65 @@ function awardMark(value, fallback) {
   return "player";
 }
 
-function applyLoot(bucket, data) {
+function applyLoot(bucket, data, fallbackDiff) {
   const loot = loadLoot();
-  let n = 0;
-  for (const a of data.awards || []) {
-    if (!a || !a.uid || !Number(a.itemId)) continue;
-    const uid = String(a.uid).slice(0, 64);
-    const prev = bucket.awards[uid];
-    bucket.awards[uid] = {
-      uid,
-      itemId: Number(a.itemId),
-      itemLink: a.itemLink ? String(a.itemLink).slice(0, 256) : "",
-      winner: a.winner ? String(a.winner).slice(0, 48) : "",
-      boss: a.boss ? String(a.boss).slice(0, 64) : "",
-      awardedAt: Number(a.awardedAt) || 0,
-      traded: !!a.traded,
-      mark: awardMark(a.mark, prev && prev.mark),
-    };
-    learnItem(loot, a.itemId, a.itemLink, a.boss);
-    n += 1;
-  }
-  saveLoot(loot);
-  const names = new Set(bucket.bosses.map((b) => b.name));
-  for (const a of Object.values(bucket.awards)) {
-    if (a.boss && !names.has(a.boss)) {
-      names.add(a.boss);
-      bucket.bosses.push({ name: a.boss, down: true });
+  let written = 0;
+  let merged = 0;
+  let skippedBind = 0;
+  const byKey = new Map();
+  bucket.bosses = normalizeBossList(bucket.bosses, loot);
+  const byBoss = Object.fromEntries(bucket.bosses.map((b) => [b.id, b]));
+  for (const [uid, a] of Object.entries(bucket.awards || {})) {
+    if (!Number(a.itemId) || !a.winner) continue;
+    const key = awardDedupeKey(a.itemId, a.winner);
+    if (byKey.has(key) && byKey.get(key) !== uid) {
+      delete bucket.awards[uid];
+    } else {
+      byKey.set(key, uid);
     }
   }
-  return n;
+  for (const a of data.awards || []) {
+    if (!a || !Number(a.itemId)) continue;
+    const bind = inferBind(a);
+    if (SKIP_BIND.has(bind)) {
+      skippedBind += 1;
+      continue;
+    }
+    const itemId = Number(a.itemId);
+    const key = awardDedupeKey(itemId, a.winner);
+    const existingUid = byKey.get(key);
+    const uid = String(existingUid || a.uid || "").slice(0, 64);
+    if (!uid) continue;
+    const prev = bucket.awards[uid];
+    const wasMerge = !!existingUid;
+    const nextLink = a.itemLink ? String(a.itemLink).slice(0, 256) : "";
+    const prevLink = (prev && prev.itemLink) || "";
+    const bossName = pickBoss(a.boss, prev, loot);
+    bucket.awards[uid] = {
+      uid,
+      itemId,
+      itemLink: nextLink.length >= prevLink.length ? nextLink : prevLink,
+      winner: a.winner ? String(a.winner).slice(0, 48) : ((prev && prev.winner) || ""),
+      boss: bossName,
+      awardedAt: Number(a.awardedAt) || (prev && prev.awardedAt) || 0,
+      traded: a.traded != null ? !!a.traded : !!(prev && prev.traded),
+      mark: awardMark(a.mark, prev && prev.mark),
+    };
+    if (bind === "bop" || (a.bind && !SKIP_BIND.has(bind))) {
+      bucket.awards[uid].bind = String(a.bind || bind).slice(0, 16);
+    }
+    const resolved = resolveBoss(bossName, loot);
+    const diff = inferBossDiff(a.diff || a.difficulty || fallbackDiff);
+    if (resolved && byBoss[resolved.id] && diff) {
+      byBoss[resolved.id][diff] = true;
+    }
+    byKey.set(key, uid);
+    learnItem(loot, itemId, bucket.awards[uid].itemLink, bucket.awards[uid].boss);
+    written += 1;
+    if (wasMerge) merged += 1;
+  }
+  saveLoot(loot);
+  return { written, merged, skippedBind, imported: written };
 }
 
 function rsvpCounts(rsvp) {
@@ -711,9 +879,10 @@ function snapshot(store, week, sess) {
   const missing = roster.filter((n) => !registered.has(charKey(n)));
   const weeks = Object.keys(store.weeks).sort().reverse();
   if (!weeks.includes(week)) weeks.unshift(week);
+  const loot = loadLoot();
   const awards = {};
   for (const [uid, a] of Object.entries(bucket.awards)) {
-    awards[uid] = { ...a, mark: awardMark(a.mark) };
+    awards[uid] = { ...a, mark: awardMark(a.mark), boss: pickBoss(a.boss, null, loot) };
   }
   return {
     week,
@@ -758,12 +927,13 @@ function seasonPayload(store, from) {
       });
     }
   }
+  const loot = loadLoot();
   for (const w of weekIds) {
     const b = readWeek(store, w);
     for (const a of Object.values(b.awards)) {
       if (!a || !a.uid || seen.has(a.uid)) continue;
       seen.add(a.uid);
-      awards.push({ ...a, mark: awardMark(a.mark), week: w });
+      awards.push({ ...a, mark: awardMark(a.mark), week: w, boss: pickBoss(a.boss, null, loot) });
     }
     for (const i of Object.values(b.intents)) {
       intents.push({
@@ -980,9 +1150,21 @@ const server = http.createServer(async (req, res) => {
         send(res, 403, { error: "只有团长能导入分配" });
         return;
       }
-      const n = applyLoot(bucket, parsed.data);
+      const lootResult = applyLoot(bucket, parsed.data, body.diff);
       saveStore(store);
-      send(res, 200, { ...snapshot(store, week, sess), imported: n });
+      send(res, 200, { ...snapshot(store, week, sess), ...lootResult });
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/awards-clear") {
+      if (!requireLead(sess, res)) return;
+      const body = await readBody(req);
+      const week = body.week || raidWeekStart();
+      const bucket = weekBucket(store, week);
+      const cleared = Object.keys(bucket.awards || {}).length;
+      bucket.awards = {};
+      saveStore(store);
+      send(res, 200, { ...snapshot(store, week, sess), cleared });
       return;
     }
 
@@ -1022,11 +1204,8 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const week = body.week || raidWeekStart();
       const bucket = weekBucket(store, week);
-      const bosses = Array.isArray(body.bosses) ? body.bosses : [];
-      bucket.bosses = bosses
-        .filter((b) => b && b.name)
-        .slice(0, 20)
-        .map((b) => ({ name: String(b.name).slice(0, 64), down: !!b.down }));
+      const incoming = Array.isArray(body.bosses) ? body.bosses : [];
+      bucket.bosses = normalizeBossList(incoming.length ? incoming : bucket.bosses);
       saveStore(store);
       send(res, 200, snapshot(store, week, sess));
       return;

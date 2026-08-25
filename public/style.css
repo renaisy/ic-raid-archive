@@ -280,6 +280,7 @@ details.import summary {
 }
 
 .night { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.night.past { opacity: 0.72; }
 .night-home { list-style: none; padding-left: 0; }
 .night-home li { margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
 .night-home li:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
@@ -461,6 +462,34 @@ select.mark { width: auto; min-width: 110px; }
 .prose { white-space: pre-wrap; color: var(--text); line-height: 1.65; }
 .memo-preview { color: var(--text2); white-space: pre-wrap; }
 .jumps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.jumps a.ghost {
+  display: inline-block;
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.progress-table .progress-cell { min-width: 118px; }
+.progress-table .progress-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  vertical-align: middle;
+}
+.progress-table .wcl-link,
+h2 .wcl-link { margin-left: 8px; font-size: 13px; font-weight: 500; }
+.progress-table .progress-cell .ghost { margin-left: 4px; padding: 2px 7px; font-size: 12px; }
+label.loot-diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+label.loot-diff select { width: auto; }
 .tactic { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
 .tactic:last-child { border-bottom: 0; margin-bottom: 0; }
 
@@ -807,7 +836,8 @@ body.clip-zoom-on { overflow: hidden; }
   .clip-zoom-hit { min-height: 0; padding: 0; }
   .clip-del { min-height: 32px; padding: 4px 8px; }
   .jumps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .jumps button { width: 100%; }
+  .jumps button,
+  .jumps a.ghost { width: 100%; text-align: center; }
   .dots { flex-wrap: wrap; }
   .item-chip { max-width: 100%; }
   .cal { gap: 3px; }
