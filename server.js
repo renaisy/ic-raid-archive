@@ -36,6 +36,11 @@ const CLIP_CAPTION_MAX = 200;
 const CLIP_KEY_MAX = 80;
 const CLIP_TOTAL_MAX = 200;
 const CLIP_PER_ABILITY = 8;
+const TIMELINE_RAW_MAX = 20000;
+const TIMELINE_EVENTS_MAX = 200;
+const TIMELINE_NOTE_MAX = 80;
+const TIMELINE_ROLE_MAX = 24;
+const TIMELINE_NAME_MAX = 64;
 const CLIP_IMAGE_MAX = 4 * 1024 * 1024;
 const BODY_MAX = 256 * 1024;
 const CLIP_BODY_MAX = 8 * 1024 * 1024;
@@ -147,6 +152,20 @@ const EXTRA_BOSS_ALIASES = {
   coiledaltar: "altar",
   乌拉特克: "ulatek",
   ulatek: "ulatek",
+  盘魂者内克扎莉: "nekzali",
+  内克扎莉: "nekzali",
+  奈克扎利: "nekzali",
+  nekzalithesoulcoiler: "nekzali",
+};
+const TIMELINE_HINTS = {
+  1288772: { role: "治疗", note: "开减伤，躲井圈，灼烧0层" },
+  1287434: { role: "点名", note: "贴边，治疗到位再驱" },
+  1284103: { role: "坦克", note: "拉开30码，别人不要挡路" },
+  1289919: { role: "输出", note: "远程破盾后转火，坦克拉向亮棺" },
+  1289683: { role: "输出", note: "打回响砍线" },
+  1292248: { role: "所有人", note: "躲开传递光束" },
+  1289855: { role: "近战", note: "分摊烧尸；远程用火苗清散尸" },
+  1299673: { role: "所有人", note: "躲移动水圈，治疗铺治疗" },
 };
 
 function foldBossName(name) {
@@ -278,6 +297,7 @@ function loadStore() {
   store.guild.rules = typeof store.guild.rules === "string" ? store.guild.rules : "";
   store.guild.tactics = Array.isArray(store.guild.tactics) ? store.guild.tactics : [];
   store.guild.clips = normalizeClips(store.guild.clips);
+  store.guild.timelines = normalizeTimelines(store.guild.timelines);
   return store;
 }
 
@@ -289,16 +309,199 @@ function clipAbilityKey(raw) {
 
 function journalBossIds() {
   const ids = new Set();
+  for (const boss of journalBossList()) ids.add(String(boss.id));
+  return ids;
+}
+
+function journalBossList() {
   const journal = loadJournal();
+  const list = [];
+  const seen = new Set();
+  const add = (b) => {
+    if (!b || !b.id || seen.has(b.id)) return;
+    seen.add(String(b.id));
+    list.push(b);
+  };
   for (const inst of journal.instances || []) {
-    for (const boss of inst.bosses || []) {
-      if (boss && boss.id) ids.add(String(boss.id));
+    for (const b of inst.bosses || []) add(b);
+  }
+  for (const b of journal.bosses || []) add(b);
+  return list;
+}
+
+function parseClock(raw) {
+  const s = String(raw || "").trim();
+  const m = s.match(/^(\d{1,2}):(\d{2})(?:\.(\d+))?$/);
+  if (!m) return null;
+  const min = Number(m[1]);
+  const sec = Number(m[2]);
+  if (!Number.isFinite(min) || !Number.isFinite(sec) || sec >= 60) return null;
+  const frac = m[3] ? Number("0." + m[3]) : 0;
+  return { time: s, sec: min * 60 + sec + frac };
+}
+
+function normalizePhase(raw) {
+  const s = String(raw || "").trim().toLowerCase().split(",")[0];
+  if (/^[pi]\d+$/.test(s)) return s;
+  return "p1";
+}
+
+function looksLikeRole(s) {
+  return /^(坦克|治疗|输出|所有人|近战|远程|点名|其余)/.test(String(s || "").trim());
+}
+
+function parseTimelineLine(line) {
+  const timeM = String(line || "").match(/\{time:([^,}]+)(?:,([^}]+))?\}/);
+  if (!timeM) return null;
+  const clock = parseClock(timeM[1]);
+  if (!clock) return null;
+  const spellM = line.match(/\{spell:(\d+)(?:,dur:([\d.]+))?\}/);
+  const spellId = spellM ? Number(spellM[1]) : 0;
+  const dur = spellM && spellM[2] != null ? Number(spellM[2]) : 0;
+  const rest = line.replace(/\{time:[^}]+\}/, "").replace(/\{spell:[^}]+\}/, "");
+  const braces = [...rest.matchAll(/\{([^}]+)\}/g)].map((m) => String(m[1] || "").trim()).filter(Boolean);
+  let role = "";
+  if (braces.length === 1) {
+    if (looksLikeRole(braces[0])) role = braces[0];
+  } else if (braces.length >= 2) {
+    role = braces[braces.length - 1];
+  }
+  const note = rest.replace(/\{[^}]+\}/g, "").trim().slice(0, TIMELINE_NOTE_MAX);
+  role = String(role || "").slice(0, TIMELINE_ROLE_MAX);
+  return {
+    time: clock.time,
+    sec: clock.sec,
+    phase: normalizePhase(timeM[2]),
+    spellId: Number.isFinite(spellId) ? spellId : 0,
+    dur: Number.isFinite(dur) ? dur : 0,
+    role,
+    note,
+    origRole: role,
+    origNote: note,
+  };
+}
+
+function parseTimelineText(text) {
+  const src = String(text || "").replace(/^\uFEFF/, "");
+  if (!src.trim()) throw new Error("请粘贴时间轴文本");
+  let name = "";
+  let author = "";
+  const events = [];
+  let section = "";
+  for (const raw of src.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const head = line.match(/^\[(.+)\]$/);
+    if (head) {
+      section = head[1];
+      continue;
+    }
+    if (section === "方案") {
+      const nm = line.match(/^名称\s*=\s*(.+)$/);
+      if (nm) name = nm[1].trim().slice(0, TIMELINE_NAME_MAX);
+      const au = line.match(/^作者\s*=\s*(.+)$/);
+      if (au) author = au[1].trim().slice(0, 32);
+      continue;
+    }
+    if (line.includes("{time:")) {
+      const ev = parseTimelineLine(line);
+      if (ev) events.push(ev);
     }
   }
-  for (const boss of journal.bosses || []) {
-    if (boss && boss.id) ids.add(String(boss.id));
+  if (!events.length) throw new Error("没有读到 {time:...} 时间轴行");
+  if (events.length > TIMELINE_EVENTS_MAX) throw new Error("时间轴行数太多");
+  return { name, author, events };
+}
+
+function publicTimelineEvent(ev) {
+  if (!ev) return null;
+  return {
+    time: String(ev.time || "").slice(0, 16),
+    sec: Number(ev.sec) || 0,
+    phase: String(ev.phase || "p1").slice(0, 8),
+    spellId: Number(ev.spellId) || 0,
+    dur: Number(ev.dur) || 0,
+    role: String(ev.role || "").slice(0, TIMELINE_ROLE_MAX),
+    note: String(ev.note || "").slice(0, TIMELINE_NOTE_MAX),
+    origRole: String(ev.origRole || "").slice(0, TIMELINE_ROLE_MAX),
+    origNote: String(ev.origNote || "").slice(0, TIMELINE_NOTE_MAX),
+  };
+}
+
+function publicTimeline(id, row) {
+  if (!row || !journalBossIds().has(id)) return null;
+  const events = (row.events || []).map(publicTimelineEvent).filter(Boolean).slice(0, TIMELINE_EVENTS_MAX);
+  if (!events.length) return null;
+  return {
+    bossId: id,
+    name: String(row.name || "").slice(0, TIMELINE_NAME_MAX),
+    author: String(row.author || "").slice(0, 32),
+    events,
+    updatedAt: Number(row.updatedAt) || 0,
+  };
+}
+
+function normalizeTimelines(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const [id, row] of Object.entries(raw)) {
+    if (!id || !row) continue;
+    const events = (row.events || []).map(publicTimelineEvent).filter(Boolean).slice(0, TIMELINE_EVENTS_MAX);
+    if (!events.length) continue;
+    out[id] = {
+      bossId: String(id).slice(0, 64),
+      name: String(row.name || "").slice(0, TIMELINE_NAME_MAX),
+      author: String(row.author || "").slice(0, 32),
+      events,
+      raw: String(row.raw || "").slice(0, TIMELINE_RAW_MAX),
+      updatedAt: Number(row.updatedAt) || 0,
+    };
   }
-  return ids;
+  return out;
+}
+
+function publicTimelines(store) {
+  const out = {};
+  for (const [id, row] of Object.entries(store.guild.timelines || {})) {
+    const pub = publicTimeline(id, row);
+    if (pub) out[id] = pub;
+  }
+  return out;
+}
+
+function resolveTimelineBoss(name, fallbackId, loot) {
+  const fromLoot = resolveBoss(name, loot);
+  if (fromLoot) return fromLoot.id;
+  const raw = String(name || "").trim();
+  const folded = foldBossName(raw);
+  if (raw) {
+    for (const b of journalBossList()) {
+      const aliases = [b.id, b.nameZh, b.nameEn, ...(b.aliases || [])];
+      if (aliases.some((x) => String(x) === raw || foldBossName(x) === folded)) return b.id;
+    }
+  }
+  const fb = String(fallbackId || "").trim();
+  if (fb && journalBossIds().has(fb)) return fb;
+  return "";
+}
+
+function applyTimelineHints(events) {
+  return (events || []).map((ev, i, all) => {
+    const hint = TIMELINE_HINTS[ev.spellId];
+    if (!hint) return ev;
+    let role = hint.role;
+    let note = hint.note;
+    if (ev.spellId === 1287434) {
+      const nearAdd = all.some((o, j) => (
+        j !== i && o.phase === ev.phase && o.spellId === 1289919 && Math.abs((o.sec || 0) - (ev.sec || 0)) <= 6
+      ));
+      if (nearAdd) {
+        role = "点名";
+        note = "贴边；其余转火";
+      }
+    }
+    return { ...ev, role, note };
+  });
 }
 
 function parseLocalUpload(raw) {
@@ -571,6 +774,7 @@ function guildPublic(store) {
       name: String(t.name || "").slice(0, 64),
       note: String(t.note || "").slice(0, 2000),
     })),
+    timelines: publicTimelines(store),
     clips: publicClips(store),
   };
 }
@@ -1356,6 +1560,95 @@ const server = http.createServer(async (req, res) => {
         }));
       saveStore(store);
       send(res, 200, snapshot(store, body.week || raidWeekStart(), sess));
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/timeline") {
+      if (!requireLead(sess, res)) return;
+      const body = await readBody(req);
+      const action = String(body.action || "import").trim();
+      store.guild.timelines = store.guild.timelines || {};
+      const week = body.week || raidWeekStart();
+
+      if (action === "import") {
+        const parsed = parseTimelineText(body.text);
+        const bossId = resolveTimelineBoss(parsed.name, body.bossId);
+        if (!bossId) {
+          send(res, 400, { error: "对不上 Boss，请先选中对应的王再导入" });
+          return;
+        }
+        store.guild.timelines[bossId] = {
+          name: parsed.name || bossId,
+          author: parsed.author,
+          raw: String(body.text || "").slice(0, TIMELINE_RAW_MAX),
+          events: parsed.events,
+          updatedAt: Date.now(),
+        };
+        saveStore(store);
+        send(res, 200, { ...snapshot(store, week, sess), imported: parsed.events.length, timelineBoss: bossId });
+        return;
+      }
+
+      const bossId = String(body.bossId || "").trim();
+      if (!journalBossIds().has(bossId)) {
+        send(res, 400, { error: "找不到这只王" });
+        return;
+      }
+
+      if (action === "clear") {
+        delete store.guild.timelines[bossId];
+        saveStore(store);
+        send(res, 200, snapshot(store, week, sess));
+        return;
+      }
+
+      const cur = store.guild.timelines[bossId];
+      if (!cur || !Array.isArray(cur.events) || !cur.events.length) {
+        send(res, 400, { error: "这只王还没有时间轴" });
+        return;
+      }
+
+      if (action === "hint") {
+        cur.events = applyTimelineHints(cur.events.map(publicTimelineEvent));
+        cur.updatedAt = Date.now();
+        saveStore(store);
+        send(res, 200, snapshot(store, week, sess));
+        return;
+      }
+
+      if (action === "revert") {
+        cur.events = cur.events.map((ev) => {
+          const row = publicTimelineEvent(ev);
+          return { ...row, role: row.origRole || "", note: row.origNote || "" };
+        });
+        cur.updatedAt = Date.now();
+        saveStore(store);
+        send(res, 200, snapshot(store, week, sess));
+        return;
+      }
+
+      if (action === "save") {
+        const incoming = Array.isArray(body.events) ? body.events : [];
+        if (incoming.length !== cur.events.length) {
+          send(res, 400, { error: "行数对不上，请刷新后再保存" });
+          return;
+        }
+        cur.events = cur.events.map((ev, i) => {
+          const locked = publicTimelineEvent(ev);
+          const next = incoming[i] || {};
+          return {
+            ...locked,
+            role: String(next.role || "").trim().slice(0, TIMELINE_ROLE_MAX),
+            note: String(next.note || "").trim().slice(0, TIMELINE_NOTE_MAX),
+          };
+        });
+        cur.updatedAt = Date.now();
+        saveStore(store);
+        send(res, 200, snapshot(store, week, sess));
+        return;
+      }
+
+      send(res, 400, { error: "未知操作" });
       return;
     }
 

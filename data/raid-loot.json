@@ -6,7 +6,7 @@
     "patch": "12.1"
   },
   "bosses": [
-    { "id": "nekzali", "nameZh": "缚魂者奈克扎利", "nameEn": "Nek'zali the Soulcoiler", "aliases": ["Nekzali"] },
+    { "id": "nekzali", "nameZh": "缚魂者奈克扎利", "nameEn": "Nek'zali the Soulcoiler", "aliases": ["Nekzali", "盘魂者内克扎莉", "内克扎莉"] },
     { "id": "sentinels", "nameZh": "葬入哨卫", "nameEn": "Entombed Sentinels" },
     { "id": "explorers", "nameZh": "迷失探险者", "nameEn": "The Lost Explorers" },
     { "id": "vashnik", "nameZh": "恶毒的瓦什尼克", "nameEn": "Vashnik the Malignant" },

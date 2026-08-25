@@ -130,6 +130,7 @@ const state = {
   journalBoss: "",
   journalInstance: "",
   journalDiff: "heroic",
+  timelinePhase: "",
   nightId: "",
 };
 
@@ -450,6 +451,92 @@ function tacticNoteFor(boss) {
   const list = ((state.data && state.data.guild && state.data.guild.tactics) || []);
   const names = new Set([boss && boss.nameZh, boss && boss.nameEn, boss && boss.id].filter(Boolean));
   return list.find((t) => names.has(t.name)) || { name: (boss && boss.nameZh) || "", note: "" };
+}
+
+const TIMELINE_PHASES = [
+  { id: "p1", name: "一阶段" },
+  { id: "i1", name: "过渡 1" },
+  { id: "i2", name: "过渡 2" },
+  { id: "p2", name: "二阶段" },
+];
+const TIMELINE_SPELLS = {
+  1288772: "魂缠仪式",
+  1287434: "精华撕裂",
+  1284103: "附身弹幕",
+  1289919: "安息阿玛尼",
+  1289683: "觉醒仪式",
+  1292248: "灵魂传递",
+  1289855: "饥渴火葬",
+  1299673: "祈求",
+  1285681: "魂缠点燃",
+};
+
+function timelineFor(bossId) {
+  const map = (state.data && state.data.guild && state.data.guild.timelines) || {};
+  return map[bossId] || null;
+}
+
+function timelineSpellName(spellId, entry) {
+  const id = Number(spellId);
+  if (!id) return "—";
+  const fromJournal = ((entry && entry.abilities) || []).find((a) => Number(a.spellId) === id);
+  if (fromJournal && fromJournal.nameZh) return fromJournal.nameZh;
+  return TIMELINE_SPELLS[id] || ("技能 " + id);
+}
+
+function timelineSpellChip(spellId, entry) {
+  const id = Number(spellId);
+  const name = timelineSpellName(id, entry);
+  if (!id) return esc(name);
+  return `<a class="spell-chip" href="https://www.wowhead.com/cn/spell=${id}" target="_blank" rel="noreferrer" data-wowhead="spell=${id}&domain=cn">${esc(name)}</a>`;
+}
+
+function timelinePhaseTabs(events) {
+  const have = new Set((events || []).map((e) => e.phase));
+  const known = TIMELINE_PHASES.filter((p) => have.has(p.id));
+  const extra = [...have].filter((id) => !TIMELINE_PHASES.some((p) => p.id === id)).sort();
+  return known.concat(extra.map((id) => ({ id, name: id })));
+}
+
+function timelineRoleKind(role) {
+  if (role === "坦克") return "tank";
+  if (role === "治疗") return "heal";
+  if (role === "所有人" || role === "点名") return "warn";
+  return "";
+}
+
+function formatTimelineText(row, title) {
+  const name = (row && row.name) || title || "";
+  const author = (row && row.author) || "ZOO";
+  const lines = ["[方案]", "名称 = " + name, "作者 = " + author, "", "[人员]", "", "[时间轴]"];
+  for (const ev of (row && row.events) || []) {
+    const caster = name ? `{${name}}` : "";
+    const spell = ev.spellId ? `{spell:${ev.spellId}${ev.dur ? ",dur:" + ev.dur : ""}}` : "";
+    const role = ev.role ? `{${ev.role}}` : "";
+    lines.push(`{time:${ev.time},${ev.phase}} ${caster}${spell}${role}${ev.note || ""}`.trimEnd());
+  }
+  return lines.join("\n");
+}
+
+async function copyText(text) {
+  const s = String(text || "");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(s);
+      return true;
+    } catch (_) {}
+  }
+  const ta = document.createElement("textarea");
+  ta.value = s;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (_) {}
+  ta.remove();
+  return ok;
 }
 
 function abilityTagKind(label) {
@@ -2468,6 +2555,58 @@ function renderTactics(page, d) {
     page.appendChild(el(`<div class="card"><p class="muted">还没有这只王的手册。</p></div>`));
   }
 
+  const axis = timelineFor(bossId);
+  const axisEvents = (axis && axis.events) || [];
+  const axisTabs = timelinePhaseTabs(axisEvents);
+  const axisPhase = axisTabs.some((p) => p.id === state.timelinePhase)
+    ? state.timelinePhase
+    : ((axisTabs[0] && axisTabs[0].id) || "");
+  const axisText = axis ? formatTimelineText(axis, title) : "";
+
+  page.appendChild(el(`<div class="card" id="timelineCard">
+    <h2>时间轴 · ${esc(title)}</h2>
+    <p class="muted">团长导入方案并改分工，时间点只读。全团可看、可复制。</p>
+    ${axis ? `<p class="tl-meta">${esc(axis.author ? "作者 " + axis.author : "ZOO 排轴")} · ${axisEvents.length} 条${
+      axis.name && axis.name !== title ? " · 方案名 " + esc(axis.name) : ""
+    }</p>
+      <div class="boss-picks">${axisTabs.map((p) =>
+        `<button type="button" class="ghost${p.id === axisPhase ? " on" : ""}" data-tl-phase="${esc(p.id)}">${esc(p.name)}</button>`
+      ).join("")}</div>
+      <table class="stack-phone tl-table">
+        <thead><tr><th>时间</th><th>技能</th><th>职责</th><th>安排</th></tr></thead>
+        <tbody>${axisEvents.map((ev, i) => {
+          return `<tr data-tl-row="${i}" data-tl-phase="${esc(ev.phase)}"${ev.phase === axisPhase ? "" : " hidden"}>
+            <td data-th="时间"><span class="tl-time">${esc(ev.time)}</span></td>
+            <td data-th="技能">${timelineSpellChip(ev.spellId, entry)}${ev.dur ? `<span class="tl-dur">${esc(String(ev.dur))}秒</span>` : ""}</td>
+            <td data-th="职责">${lead
+              ? `<input data-tl-role maxlength="24" value="${esc(ev.role || "")}" />`
+              : (ev.role ? tag(ev.role, timelineRoleKind(ev.role)) : `<span class="muted">—</span>`)}</td>
+            <td data-th="安排">${lead
+              ? `<input data-tl-note maxlength="80" value="${esc(ev.note || "")}" />`
+              : (ev.note ? esc(ev.note) : `<span class="muted">—</span>`)}</td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table>
+      <div class="row tl-actions">
+        <button type="button" class="ghost" id="tlCopy">复制方案</button>
+        ${lead ? `<button type="button" id="tlSave">保存分工</button>
+          <button type="button" class="ghost" id="tlHint">套用建议分工</button>
+          <button type="button" class="ghost" id="tlRevert">还原导入原文</button>
+          <button type="button" class="ghost" id="tlClear">清空时间轴</button>` : ""}
+      </div>
+      <details class="import">
+        <summary>复制用文本</summary>
+        <textarea id="tlText" readonly>${esc(axisText)}</textarea>
+      </details>`
+      : `<p class="muted">${lead ? "还没有这只王的轴。把方案文本贴到下面导入。" : "团长还没导入这只王的时间轴。"}</p>`}
+    ${lead ? `<details class="import"${axis ? "" : " open"}>
+      <summary>${axis ? "重新导入 / 覆盖时间轴" : "导入时间轴"}</summary>
+      <p class="muted">粘贴 [方案] / [时间轴] 文本。时间、阶段、技能只读入库。</p>
+      <textarea id="tlPaste" placeholder="{time:00:03,p1} {缚魂者奈克扎利}{spell:1288772,dur:44}{治疗}开减伤"></textarea>
+      <div class="row" style="margin-top:8px"><button type="button" id="tlImport">导入时间轴</button></div>
+    </details>` : ""}
+  </div>`));
+
   page.appendChild(el(`<div class="card">
     <h2>ZOO 备注 · ${esc(title)}</h2>
     <p class="muted">团长写本团要点，和上面手册分开存。分技能的截图或视频贴在对应技能卡下面。</p>
@@ -2481,12 +2620,14 @@ function renderTactics(page, d) {
       state.journalInstance = btn.getAttribute("data-journal-inst");
       const ids = journalBosses().map((b) => b.id);
       if (!ids.includes(state.journalBoss)) state.journalBoss = ids[0] || "";
+      state.timelinePhase = "";
       render();
     };
   });
   page.querySelectorAll("[data-journal]").forEach((btn) => {
     btn.onclick = () => {
       state.journalBoss = btn.getAttribute("data-journal");
+      state.timelinePhase = "";
       render();
     };
   });
@@ -2496,6 +2637,99 @@ function renderTactics(page, d) {
       render();
     };
   });
+
+  page.querySelectorAll("[data-tl-phase]").forEach((btn) => {
+    btn.onclick = () => {
+      state.timelinePhase = btn.getAttribute("data-tl-phase") || "";
+      page.querySelectorAll("#timelineCard [data-tl-phase]").forEach((node) => {
+        if (node.tagName === "BUTTON") {
+          node.classList.toggle("on", node.getAttribute("data-tl-phase") === state.timelinePhase);
+        } else {
+          node.hidden = node.getAttribute("data-tl-phase") !== state.timelinePhase;
+        }
+      });
+    };
+  });
+
+  const readTlEdits = () => axisEvents.map((ev, i) => {
+    const row = page.querySelector(`[data-tl-row="${i}"]`);
+    if (!row) return { role: ev.role || "", note: ev.note || "" };
+    const role = row.querySelector("[data-tl-role]");
+    const note = row.querySelector("[data-tl-note]");
+    return {
+      role: role ? role.value : (ev.role || ""),
+      note: note ? note.value : (ev.note || ""),
+    };
+  });
+
+  const postTl = async (body, notice) => {
+    const out = await api("/api/timeline", {
+      method: "POST",
+      body: JSON.stringify({ week: d.week, bossId, ...body }),
+    });
+    if (out.timelineBoss) state.journalBoss = out.timelineBoss;
+    await afterWrite(out, notice);
+  };
+
+  const tlCopy = page.querySelector("#tlCopy");
+  if (tlCopy) {
+    tlCopy.onclick = async () => {
+      const ok = await copyText(axisText);
+      const box = page.querySelector("#tlText");
+      const details = box && box.closest("details");
+      if (!ok && details) details.open = true;
+      if (!ok && box) {
+        box.focus();
+        box.select();
+      }
+      tlCopy.textContent = ok ? "已复制" : "已展开文本，请 Ctrl+C";
+      setTimeout(() => { tlCopy.textContent = "复制方案"; }, 2000);
+    };
+  }
+  const tlImport = page.querySelector("#tlImport");
+  if (tlImport) {
+    tlImport.onclick = async () => {
+      const text = (page.querySelector("#tlPaste") || {}).value || "";
+      try {
+        const out = await api("/api/timeline", {
+          method: "POST",
+          body: JSON.stringify({ week: d.week, bossId, action: "import", text }),
+        });
+        if (out.timelineBoss) state.journalBoss = out.timelineBoss;
+        state.timelinePhase = "";
+        await afterWrite(out, `已导入 ${out.imported} 条`);
+      } catch (e) { fail(e); }
+    };
+  }
+  const tlSave = page.querySelector("#tlSave");
+  if (tlSave) {
+    tlSave.onclick = async () => {
+      try { await postTl({ action: "save", events: readTlEdits() }, "分工已保存"); }
+      catch (e) { fail(e); }
+    };
+  }
+  const tlHint = page.querySelector("#tlHint");
+  if (tlHint) {
+    tlHint.onclick = async () => {
+      try { await postTl({ action: "hint" }, "已套用建议分工，时间未改"); }
+      catch (e) { fail(e); }
+    };
+  }
+  const tlRevert = page.querySelector("#tlRevert");
+  if (tlRevert) {
+    tlRevert.onclick = async () => {
+      try { await postTl({ action: "revert" }, "已还原导入时的分工"); }
+      catch (e) { fail(e); }
+    };
+  }
+  const tlClear = page.querySelector("#tlClear");
+  if (tlClear) {
+    tlClear.onclick = async () => {
+      if (!confirm("清空这只王的时间轴？手册和备注不会动。")) return;
+      try { await postTl({ action: "clear" }, "时间轴已清空"); }
+      catch (e) { fail(e); }
+    };
+  }
 
   const save = page.querySelector("#saveTac");
   if (save) {

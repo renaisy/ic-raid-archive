@@ -278,6 +278,15 @@ details.import summary {
   color: var(--text2);
   font-size: 13px;
 }
+.tl-meta { margin: 0 0 10px; color: var(--text2); font-size: 13px; }
+.tl-table { width: 100%; }
+.tl-table th { text-align: left; color: var(--faint); font-weight: 600; font-size: 12px; }
+.tl-table td, .tl-table th { padding: 6px 8px 6px 0; vertical-align: middle; }
+.tl-time { font-variant-numeric: tabular-nums; font-weight: 650; }
+.tl-dur { color: var(--faint); font-size: 12px; margin-left: 6px; }
+.tl-table input { min-width: 0; }
+.tl-actions { margin: 10px 0 8px; flex-wrap: wrap; }
+#tlPaste, #tlText { min-height: 160px; font-family: ui-monospace, Consolas, "Sarasa Mono SC", monospace; font-size: 12px; }
 
 .night { padding: 8px 0; border-bottom: 1px solid var(--line); }
 .night.past { opacity: 0.72; }
